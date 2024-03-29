@@ -21,7 +21,8 @@
             "executor": "nx:run-commands",
             "dependsOn": ["build"],
             "options": {
-                "commands": ["./dist/{projectName}/build"]
+                "commands": ["./dist/{projectName}/build"],
+                "parallel": false
             }
         }
     },
