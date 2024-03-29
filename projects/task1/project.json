@@ -17,12 +17,6 @@
                 "commands": ["make -C {projectRoot}/src/ target='$(PWD)/dist/{projectName}/build'"]
             }
         },
-        "build:ci": {
-            "executor": "nx:run-commands",
-            "options": {
-                "commands": ["./scripts/build-ci.sh"]
-            }
-        },
         "run": {
             "executor": "nx:run-commands",
             "dependsOn": ["build:arm"],
