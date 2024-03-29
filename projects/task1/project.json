@@ -4,14 +4,17 @@
     "projectType": "application",
     "sourceRoot": "./projects/{projectName}/src",
     "targets": {
-        "build:arm": {
+        "clean": {
             "executor": "nx:run-commands",
             "options": {
-                "commands": [
-                    "mkdir -p ./dist/{projectName}",
-                    "rm -rf ./dist/{projectName}/*",
-                    "gcc --std=c90 ./{projectRoot}/src/main.c -o ./dist/{projectName}/build"
-                ]
+                "commands": ["make -C {projectRoot}/src/ clean target='$(PWD)/dist/{projectName}'"]
+            }
+        },
+        "build:arm": {
+            "executor": "nx:run-commands",
+            "dependsOn": ["clean"],
+            "options": {
+                "commands": ["make -C {projectRoot}/src/ target='$(PWD)/dist/{projectName}/build'"]
             }
         },
         "build:ci": {
