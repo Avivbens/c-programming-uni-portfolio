@@ -1,0 +1,36 @@
+---
+name: PR Health Checks 🐛
+on:
+    pull_request:
+        branches:
+            - master
+    push:
+        branches:
+            - master
+
+permissions:
+    contents: read
+    actions: read
+    pull-requests: write
+
+jobs:
+    PR-checks:
+        runs-on: windows-2019
+        name: PR Health Checks 🐛
+        steps:
+            - name: 📀 Checkout
+              uses: actions/checkout@v3
+              with:
+                  fetch-depth: 0
+
+            - name: 'Derive appropriate SHAs for base and head for `nx affected` commands'
+              uses: nrwl/nx-set-shas@v4
+              with: { main-branch-name: 'master' }
+
+            - name: 🧪 Check out repository code
+              uses: ./.github/workflows/health-check
+              with:
+                  run-lint: false
+                  run-tests: false
+                  run-build: true
+                  run-build-command: 'npx nx affected --target=build:arm --parallel'
