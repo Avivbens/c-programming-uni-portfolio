@@ -8,6 +8,10 @@ CI actions would check the code in `windows-2019` environment, for evert PR and 
 
 This repository contains my C programming portfolios. The purpose of this repository is to showcase my C programming skills. The programs are written in C programming language and compiled using GCC compiler.
 
+## Introduction
+
+See contribution guidelines [here](CONTRIBUTING.md).
+
 ## Project Configuration
 
 This project is maintained using the following tools:
