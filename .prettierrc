@@ -1,0 +1,16 @@
+{
+    "$schema": "https://json.schemastore.org/prettierrc",
+    "tabWidth": 4,
+    "singleQuote": true,
+    "trailingComma": "all",
+    "semi": false,
+    "printWidth": 120,
+    "overrides": [
+        {
+            "files": ["*.ts"],
+            "options": {
+                "importOrderParserPlugins": ["typescript", "decorators-legacy"]
+            }
+        }
+    ]
+}

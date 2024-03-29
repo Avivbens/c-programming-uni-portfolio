@@ -1,0 +1,24 @@
+{
+    "name": "c-programming-uni-portfolio",
+    "version": "1.0.0",
+    "description": "",
+    "main": "index.js",
+    "scripts": {
+        "test": "echo \"Error: no test specified\" && exit 1",
+        "pre-commit": "pretty-quick --staged",
+        "prepare": "husky install || exit 0"
+    },
+    "keywords": [],
+    "author": {
+        "name": "Aviv Ben Shahar",
+        "email": "avivbens87@gmail.com"
+    },
+    "license": "MIT",
+    "devDependencies": {
+        "@total-typescript/ts-reset": "^0.5.1",
+        "husky": "^9.0.11",
+        "prettier": "^3.2.5",
+        "pretty-quick": "^4.0.0",
+        "typescript": "^5.4.2"
+    }
+}
