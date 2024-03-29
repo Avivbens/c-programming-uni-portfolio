@@ -1,0 +1,32 @@
+{
+    "name": "task1",
+    "$schema": "../../node_modules/nx/schemas/project-schema.json",
+    "projectType": "application",
+    "sourceRoot": "./projects/{projectName}/src",
+    "targets": {
+        "build:arm": {
+            "executor": "nx:run-commands",
+            "options": {
+                "commands": [
+                    "mkdir -p ./dist/{projectName}",
+                    "rm -rf ./dist/{projectName}/*",
+                    "gcc --std=c90 ./{projectRoot}/src/main.c -o ./dist/{projectName}/build"
+                ]
+            }
+        },
+        "build:ci": {
+            "executor": "nx:run-commands",
+            "options": {
+                "commands": ["./scripts/build-ci.sh"]
+            }
+        },
+        "run": {
+            "executor": "nx:run-commands",
+            "dependsOn": ["build:arm"],
+            "options": {
+                "commands": ["./dist/{projectName}/build"]
+            }
+        }
+    },
+    "tags": []
+}

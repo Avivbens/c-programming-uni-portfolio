@@ -16,7 +16,6 @@
     },
     "license": "MIT",
     "devDependencies": {
-        "@monodon/rust": "^1.4.0",
         "@nx/js": "18.2.1",
         "@nx/workspace": "^18.2.1",
         "@total-typescript/ts-reset": "^0.5.1",
