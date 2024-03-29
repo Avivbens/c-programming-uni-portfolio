@@ -4,7 +4,7 @@
     "description": "",
     "main": "index.js",
     "scripts": {
-        "build": "nx affected --target=build:arm --base=origin/master --parallel",
+        "build": "nx affected --target=build --base=origin/master --parallel",
         "test": "echo \"Error: no test specified\" && exit 1",
         "format": "prettier --write \"src/**/*\"",
         "pre-commit": "pretty-quick --staged",
