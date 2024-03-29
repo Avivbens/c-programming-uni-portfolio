@@ -36,9 +36,6 @@ inputs:
 runs:
     using: composite
     steps:
-        - name: 🖥️ Setup Env
-          uses: ./.github/workflows/install
-
         - name: 🧪 Test
           if: ${{ inputs.run-tests == 'true' }}
           shell: bash

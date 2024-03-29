@@ -23,6 +23,9 @@ jobs:
               with:
                   fetch-depth: 0
 
+            - name: 🖥️ Setup Env
+              uses: ./.github/workflows/install
+
             - name: 'Derive appropriate SHAs for base and head for `nx affected` commands'
               uses: nrwl/nx-set-shas@v4
               with: { main-branch-name: 'master' }
