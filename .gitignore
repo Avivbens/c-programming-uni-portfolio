@@ -88,3 +88,6 @@ lerna-debug.log*
 # compiled output
 /dist
 /node_modules
+
+
+.nx/cache

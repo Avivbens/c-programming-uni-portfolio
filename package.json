@@ -5,6 +5,7 @@
     "main": "index.js",
     "scripts": {
         "test": "echo \"Error: no test specified\" && exit 1",
+        "format": "prettier --write \"src/**/*\"",
         "pre-commit": "pretty-quick --staged",
         "prepare": "husky install || exit 0"
     },
@@ -19,6 +20,10 @@
         "husky": "^9.0.11",
         "prettier": "^3.2.5",
         "pretty-quick": "^4.0.0",
-        "typescript": "^5.4.2"
+        "typescript": "^5.4.2",
+        "nx": "18.2.1"
+    },
+    "nx": {
+        "includedScripts": []
     }
 }
