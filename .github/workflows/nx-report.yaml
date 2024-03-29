@@ -41,7 +41,7 @@ jobs:
                   github-token: ${{secrets.GITHUB_TOKEN}}
                   script: |
                       const affectedProjectsStr = `${{steps.affected-projects.outputs.affected}}`.trim();
-                      const affectedProjects = affectedProjectsStr.split('\n').filter(Boolean);
+                      const affectedProjects = affectedProjectsStr.split(' ').filter(Boolean);
 
                       let res = affectedProjects.map(p => `- ${p}`).join('\n');
                       if (!affectedProjects.length || !res) {
