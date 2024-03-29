@@ -1,0 +1,25 @@
+{
+    "compilerOptions": {
+        "allowSyntheticDefaultImports": true,
+        "baseUrl": "./",
+        "declaration": true,
+        "emitDecoratorMetadata": true,
+        "experimentalDecorators": true,
+        "forceConsistentCasingInFileNames": false,
+        "incremental": true,
+        "module": "Node16",
+        "noFallthroughCasesInSwitch": false,
+        "noImplicitAny": true,
+        "outDir": "./dist",
+        "removeComments": true,
+        "skipLibCheck": true,
+        "sourceMap": true,
+        "strict": true,
+        "strictBindCallApply": true,
+        "strictNullChecks": true,
+        "strictPropertyInitialization": false,
+        "target": "es2017",
+        "useUnknownInCatchVariables": false,
+        "preserveWatchOutput": true
+    }
+}
