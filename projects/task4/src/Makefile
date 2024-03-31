@@ -4,7 +4,7 @@ CC = gcc
 
 build:
 	@echo "Building project..."
-	$(CC) --std=c90 ./main.c -o $(target)
+	$(CC) -std=c90 -lm -Wall ./main.c -o $(target)
 
 clean:
 	@echo "Cleaning up..."
