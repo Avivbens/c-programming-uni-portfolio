@@ -14,14 +14,14 @@
             "executor": "nx:run-commands",
             "dependsOn": ["clean"],
             "options": {
-                "commands": ["make -C {projectRoot}/src/ target='$(PWD)/dist/{projectName}/build'"]
+                "commands": ["make -C {projectRoot}/src/ target='$(PWD)/dist/{projectName}'"]
             }
         },
         "run": {
             "executor": "nx:run-commands",
             "dependsOn": ["build"],
             "options": {
-                "commands": ["./dist/{projectName}/build"],
+                "commands": ["./dist/{projectName}/RUNNER.o"],
                 "parallel": false
             }
         }
