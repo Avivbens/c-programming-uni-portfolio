@@ -1,7 +1,7 @@
 #include <stdio.h>
 
-int second(void)
+int second(int testNum)
 {
-    printf("In second\n");
+    printf("In second, number received: %d\n", testNum);
     return 0;
 }

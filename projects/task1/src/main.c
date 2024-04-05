@@ -1,12 +1,11 @@
 #include <stdio.h>
-
-int second(void);
+#include "./header.h"
 
 int main(void)
 {
     int testInteger;
     /* int a = 0; */
-    second();
+    second(1234);
     printf("In main\n");
     printf("Enter an integer: ");
 
