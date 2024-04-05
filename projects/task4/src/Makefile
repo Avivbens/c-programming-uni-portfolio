@@ -14,7 +14,8 @@ link:
 	@echo "Linking project..."
 	$(eval FILES := $(shell ls $(target) | grep .o))
 
-	(cd $(target) && $(COMPILER) -o $(target)/RUNNER.o $(FILES))
+	$(eval TARGET_NAME := $(shell echo "$(target)/RUNNER.o"))
+	(cd $(target) && $(COMPILER) -o $(TARGET_NAME) $(FILES))
 
 clean:
 	@echo "Cleaning up..."
