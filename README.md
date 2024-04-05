@@ -1,12 +1,14 @@
 # ANSI C Programming Portfolios
 
-All code in this repository is written in ANSI C (C90) programming language. The code is compiled using GCC compiler.
+All code in this repository is written in ANSI C (C90) programming language. The code is compiled using the GCC compiler.
 
-CI actions would check the code in `windows-2019` environment, for evert PR and push to the `master` branch.
+CI actions would check the code in `windows-2019` environment, for every PR and push to the `master` branch.
 
-## Description
+<!-- ## Description
 
-This repository contains my C programming portfolios. The purpose of this repository is to showcase my C programming skills. The programs are written in C programming language and compiled using GCC compiler.
+This repository contains the following projects:
+
+-   [Hello World](./hello-world) - A simple program that prints "Hello, World!" to the console. -->
 
 ## Introduction
 
