@@ -1,4 +1,4 @@
-all: build
+all: build link
 
 CC = gcc
 COMPILER = $(CC) -std=c90 -ansi -pedantic -Wall -Werror
@@ -7,8 +7,6 @@ build:
 	@echo "Building project..."
 	$(eval FILES := $(shell ls ./** | grep .c | sed 's/\.c//g'))
 	$(shell for file in $(FILES); do $(COMPILER) $$file.c -o $(target)/$$file.o -c; done)
-
-	make link
 
 link:
 	@echo "Linking project..."
