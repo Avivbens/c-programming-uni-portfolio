@@ -2,7 +2,7 @@
 
 All code in this repository is written in ANSI C (C90) programming language. The code is compiled using GCC compiler.
 
-CI actions would check the code in `windows-2019` environment, for evert PR and push to the `master` branch.
+CI actions would check the code in `windows-2019` environment, for every PR and push to the `master` branch.
 
 ## Description
 
