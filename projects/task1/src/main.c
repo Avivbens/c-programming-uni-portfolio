@@ -1,11 +1,11 @@
 #include <stdio.h>
 
-int main()
+int main(void)
 {
     int testInteger;
+    /* int a = 0; */
     printf("Enter an integer: ");
 
-    int a = 0;
     scanf("%d", &testInteger);
     printf("Number = %d", testInteger);
     return 0;
