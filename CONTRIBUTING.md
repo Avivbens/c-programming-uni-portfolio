@@ -1,3 +1,11 @@
+## Intro
+
+Install dependencies to get started:
+
+```bash
+npm ci
+```
+
 ## Build
 
 To build all affected projects, execute the following command:
@@ -8,7 +16,7 @@ npm run build
 
 ## Run
 
-To run a project, execute the following command;
+To run a project, execute the following command:
 
 ```bash
 nx run <project>:run

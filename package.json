@@ -7,7 +7,6 @@
         "build": "nx affected --target=build --base=origin/master --parallel",
         "test": "echo \"Error: no test specified\" && exit 1",
         "format": "prettier --write \"src/**/*\"",
-        "pre-commit": "pretty-quick --staged",
         "prepare": "husky install || exit 0"
     },
     "keywords": [],
@@ -20,10 +19,11 @@
         "@nx/js": "18.2.1",
         "@nx/workspace": "^18.2.1",
         "@total-typescript/ts-reset": "^0.5.1",
+        "clang-format": "^1.8.0",
         "husky": "^9.0.11",
+        "lint-staged": "^15.2.2",
         "nx": "18.2.1",
         "prettier": "^3.2.5",
-        "pretty-quick": "^4.0.0",
         "typescript": "^5.4.2"
     }
 }
