@@ -4,12 +4,6 @@
     "projectType": "application",
     "sourceRoot": "./projects/{projectName}/src",
     "targets": {
-        "clean": {
-            "executor": "nx:run-commands",
-            "options": {
-                "commands": ["make -C {projectRoot}/src/ clean target='$(PWD)/dist/{projectName}'"]
-            }
-        },
         "build": {
             "executor": "nx:run-commands",
             "dependsOn": ["clean"],

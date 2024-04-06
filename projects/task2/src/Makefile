@@ -1,4 +1,4 @@
-all: build link
+all: clean build link
 
 CC = gcc
 COMPILER = $(CC) -std=c90 -ansi -pedantic -Wall -Werror
