@@ -8,7 +8,7 @@
             "executor": "nx:run-commands",
             "dependsOn": ["clean"],
             "options": {
-                "commands": ["make -C {projectRoot}/src/ target='$(PWD)/dist/{projectName}'"]
+                "commands": ["make -C {projectRoot}/src/ target='$(PWD)/dist/{projectName}' name={projectName}"]
             }
         },
         "run": {
