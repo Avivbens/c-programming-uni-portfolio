@@ -1,0 +1,23 @@
+./Projects/**/**/src
+./Projects/**/**/inc
+./Hardware
+# third party libs
+./Apps/Gate/JSON/cJSON.h
+./Apps/Gate/JSON/cJSON.c
+./Apps/Gate/TinyJSON/tiny-json.h
+./Apps/Gate/TinyJSON/tiny-json.c
+./Projects/l0/Distance/lib/Distance/VL53L0X_1.0.2
+./Projects/l0/Imu/lib/Imu/motion_driver_6.12
+./Projects/l0/Load/lib/Load/HX711
+./Projects/l0/Dxl/lib/Dxl/Dynamixel_Servo
+./Projects/l0/Button_FreeRTOS/lib/FreeRTOS/Source
+./.*
+*.json
+*/.vscode
+*/.pio
+.github/**/*
+.husky/**/*
+./Projects/l0/demo/**/src
+./Projects/l0/demo/**/inc
+./Projects/l0/demo/**/include
+.clang-format

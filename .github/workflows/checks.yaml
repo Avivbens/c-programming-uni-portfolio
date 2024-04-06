@@ -24,7 +24,7 @@ jobs:
             - name: 📦 Setup Machine
               uses: msys2/setup-msys2@v2
               with:
-                  install: gcc make
+                  install: gcc make bash
 
             - name: 📀 Checkout
               uses: actions/checkout@v3
@@ -41,7 +41,8 @@ jobs:
             - name: 🧪 Check out repository code
               uses: ./.github/workflows/health-check
               with:
-                  run-lint: false
                   run-tests: false
+                  run-lint: true
+                  run-lint-command: 'npx nx affected --target=format-check --parallel'
                   run-build: true
-                  run-build-command: 'npx nx affected --target=build'
+                  run-build-command: 'npx nx affected --target=build --parallel'
