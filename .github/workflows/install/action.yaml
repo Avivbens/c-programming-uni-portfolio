@@ -13,4 +13,4 @@ runs:
         - name: 🔗 Install Dependencies
           shell: bash
           run: |
-              npm ci --no-fund --no-audit --ignore-scripts
+              npm ci --no-fund --no-audit --no-progress --ignore-scripts
