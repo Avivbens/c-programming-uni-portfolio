@@ -1,6 +1,6 @@
 #include <stdio.h>
 
-#include "./header.h"
+#include "./second/second.h"
 
 int main(void) {
     int testInteger;
