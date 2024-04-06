@@ -1,8 +1,8 @@
 #include <stdio.h>
+
 #include "./header.h"
 
-int main(void)
-{
+int main(void) {
     int testInteger;
     /* int a = 0; */
     second(1234);
