@@ -1,0 +1,1 @@
+int second(int num);

@@ -28,7 +28,7 @@ link:
 	$(eval FILES := $(shell find $(target) -type f -name '*.o'))
 	@echo "Files: $(FILES)"
 
-	$(eval TARGET_NAME := $(shell echo "$(target)/RUNNER.o"))
+	$(eval TARGET_NAME := $(shell echo "$(target)/$(name)"))
 	$(COMPILER) -o $(TARGET_NAME) $(FILES)
 
 	@echo "\n----- Done Linking -----\n"
