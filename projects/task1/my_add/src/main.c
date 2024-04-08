@@ -5,7 +5,7 @@
 int main(void) {
     int testInteger;
     /* int a = 0; */
-    second(1234);
+    second(12364);
     printf("In main\n");
     printf("Enter an integer: ");
 
