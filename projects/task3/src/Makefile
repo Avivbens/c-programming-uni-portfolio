@@ -1,7 +1,7 @@
 all: clean build link
 
 CC = gcc
-COMPILER = $(CC) -std=c90 -ansi -pedantic -Wall -Werror
+COMPILER = $(CC) -std=c90 -ansi -pedantic -Wall -Werror -ggdb -Iinclude
 
 build:
 	@echo "Building project..."
