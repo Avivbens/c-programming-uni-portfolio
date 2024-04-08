@@ -7,8 +7,16 @@
         "build": {
             "executor": "nx:run-commands",
             "dependsOn": ["clean"],
-            "options": {
-                "commands": ["make -C {projectRoot}/src/ target='$(PWD)/dist/{projectName}' name={projectName}"]
+            "defaultConfiguration": "production",
+            "configurations": {
+                "debug": {
+                    "commands": [
+                        "make -C {projectRoot}/src/ target='$(PWD)/dist/{projectName}' name={projectName} cflags='-ggdb -Iinclude'"
+                    ]
+                },
+                "production": {
+                    "commands": ["make -C {projectRoot}/src/ target='$(PWD)/dist/{projectName}' name={projectName}"]
+                }
             }
         },
         "run": {

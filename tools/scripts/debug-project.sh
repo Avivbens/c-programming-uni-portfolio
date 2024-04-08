@@ -49,7 +49,7 @@ async function findNxProject(rootDir, dirPath) {
         process.exit(1)
     }
 
-    const nxBuildCommand = `npx nx run ${nxProject}:build`
+    const nxBuildCommand = `npx nx run ${nxProject}:build:debug`
     console.log(`Running ${nxBuildCommand}`)
 
     await execPrm(nxBuildCommand, { stdio: 'inherit' })
