@@ -1,0 +1,11 @@
+{
+    "files.associations": {
+        "header.h": "c",
+        "stdio.h": "c",
+        "__availability": "c",
+        "barrier": "c",
+        "string": "c",
+        "second.h": "c",
+        "regex": "c"
+    }
+}
