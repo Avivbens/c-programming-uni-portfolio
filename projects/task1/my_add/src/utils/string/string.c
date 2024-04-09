@@ -8,7 +8,7 @@
  * reverse a string
  * @return reversed string
  */
-char *reverse(char *str) {
+char *reverseString(char *str) {
     int i = 0;
     int length = strlen(str);
     char temp;

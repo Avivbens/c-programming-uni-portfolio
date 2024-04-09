@@ -1,2 +1,2 @@
-char *reverse(char *str);
+char *reverseString(char *str);
 long stringToLong(const char *str);

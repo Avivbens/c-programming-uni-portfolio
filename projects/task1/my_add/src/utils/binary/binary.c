@@ -51,6 +51,6 @@ char *decimalToBinary(const char *decimal) {
     }
     binaryStr[i] = '\0';
 
-    binaryStr = reverse(binaryStr);
+    binaryStr = reverseString(binaryStr);
     return binaryStr;
 }
