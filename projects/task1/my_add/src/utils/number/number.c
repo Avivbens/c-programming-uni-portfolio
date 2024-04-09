@@ -6,6 +6,10 @@
 
 #include "../string/string.h"
 
+/**
+ * get the length of a number
+ * @return length of the number
+ */
 int numLength(const int number) {
     char strNumber[100];
     int length;
@@ -16,6 +20,10 @@ int numLength(const int number) {
     return length;
 }
 
+/**
+ * reverse a number
+ * @return reversed number
+ */
 int reverseNumber(int number) {
     int reversedNumber = 0;
 
@@ -27,6 +35,10 @@ int reverseNumber(int number) {
     return reversedNumber;
 }
 
+/**
+ * convert a number to a string
+ * @return string representation of the number
+ */
 char *numberToString(int number) {
     char *result = (char *)malloc(100 * sizeof(char));
     int i = 0;
@@ -41,28 +53,4 @@ char *numberToString(int number) {
     result = reverseString(result);
 
     return result;
-}
-
-char *arrayToString(int *array) {
-    char *result = (char *)malloc(100 * sizeof(char));
-    int length = arraySize(array);
-    int i = 0;
-
-    for (i = 0; i < length; i++) {
-        result[i] = array[i] + '0';
-    }
-
-    result[i] = '\0';
-
-    return result;
-}
-
-int arraySize(int *array) {
-    int length = 0;
-
-    while (array[length] != EOF) {
-        length++;
-    }
-
-    return length;
 }
