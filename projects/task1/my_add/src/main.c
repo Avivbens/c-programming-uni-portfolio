@@ -3,10 +3,16 @@
 
 #include "./my-add/my_add.h"
 #include "./utils/binary/binary.h"
+#include "./utils/number/number.h"
+#include "./utils/string/string.h"
 
 int main(void) {
     char a[MAX_SIZE_DECIMAL], b[MAX_SIZE_DECIMAL];
     char *aBinary, *bBinary;
+    unsigned int aInt, bInt;
+
+    int sumBinary = 0;
+    int sumDecimal = 0;
 
     printf("\nEnter 2 numbers: ");
     scanf("%s %s", a, b);
@@ -17,9 +23,13 @@ int main(void) {
 
     printf("\nBinary numbers are: %s, %s\n", aBinary, bBinary);
 
-    aBinary = binaryToDecimal(aBinary);
-    bBinary = binaryToDecimal(bBinary);
+    aInt = (int)stringToLong(aBinary);
+    bInt = (int)stringToLong(bBinary);
 
-    printf("\nDecimal numbers are: %s, %s\n", aBinary, bBinary);
+    sumBinary = my_add(aInt, bInt);
+    printf("\nSum of binaries: %d\n", sumBinary);
+
+    sumDecimal = (int)stringToLong(binaryToDecimal(numberToString(sumBinary)));
+    printf("\nSum of binaries - Decimal: %d\n", sumDecimal);
     return 0;
 }
