@@ -1,15 +1,25 @@
 #include <stdio.h>
+#include <stdlib.h>
 
-#include "./second/second.h"
+#include "./my-add/my_add.h"
+#include "./utils/binary/binary.h"
 
 int main(void) {
-    int testInteger;
-    /* int a = 0; */
-    second(1234);
-    printf("In main\n");
-    printf("Enter an integer: ");
+    char a[MAX_SIZE_DECIMAL], b[MAX_SIZE_DECIMAL];
+    char *aBinary, *bBinary;
 
-    scanf("%d", &testInteger);
-    printf("Number = %d", testInteger);
+    printf("\nEnter 2 numbers: ");
+    scanf("%s %s", a, b);
+    printf("\nNumbers are: %s, %s\n", a, b);
+
+    aBinary = decimalToBinary(a);
+    bBinary = decimalToBinary(b);
+
+    printf("\nBinary numbers are: %s, %s\n", aBinary, bBinary);
+
+    aBinary = binaryToDecimal(aBinary);
+    bBinary = binaryToDecimal(bBinary);
+
+    printf("\nDecimal numbers are: %s, %s\n", aBinary, bBinary);
     return 0;
 }
