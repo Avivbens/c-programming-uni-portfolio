@@ -25,5 +25,9 @@ unsigned int my_add(unsigned int a, unsigned int b) {
         i++;
     }
 
+    if (remainder != 0) {
+        result += (remainder * pow(10, i));
+    }
+
     return (int)result;
 }
