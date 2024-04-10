@@ -2,6 +2,7 @@
 
 const { exec } = require('node:child_process')
 const { mkdtemp, writeFile } = require('node:fs/promises')
+const { cwd } = require('node:process')
 const { promisify } = require('node:util')
 
 const execPrm = promisify(exec)
@@ -20,11 +21,11 @@ const COLORS = {
 const CONSOLE_COLOR = (color) => `${color}%s\x1b[0m`
 
 async function createTempFile() {
-    const name = await mkdtemp('dist/test-')
-    const fileName = `${name}/input.txt`
-    await writeFile(fileName, '')
+    const tempDirName = await mkdtemp('dist/test-')
+    const tempFileName = `${tempDirName}/input.txt`
+    await writeFile(tempFileName, '')
 
-    return fileName
+    return { tempDirName, tempFileName }
 }
 
 function extractBinarySum(rawOutput) {
@@ -51,12 +52,13 @@ function extractDecimalSum(rawOutput) {
     return result
 }
 
-; (async () => {
-    /* build project */
-    await execPrm(`npx nx run ${PROJECT_NAME}:build`)
+async function cleanup(tempDirectory) {
+    await execPrm(`rm -rf ${tempDirectory}`, { shell: true })
+}
 
+; (async () => {
     const testsConfiguration = require('./inputs-configuration.json')
-    const tempTextFile = await createTempFile()
+    const { tempDirName, tempFileName } = await createTempFile()
 
     let errorRate = 0
 
@@ -66,9 +68,9 @@ function extractDecimalSum(rawOutput) {
 
         const { decimal, binary } = output
 
-        await writeFile(tempTextFile, inputs.join('\n'))
+        await writeFile(tempFileName, inputs.join('\n'))
 
-        const { stdout } = await execPrm(`${EXECUTABLE} < ${tempTextFile}`)
+        const { stdout } = await execPrm(`${cwd()}/${EXECUTABLE} < ${cwd()}/${tempFileName}`, { shell: true })
         const binarySum = extractBinarySum(stdout)
         const decimalSum = extractDecimalSum(stdout)
 
@@ -82,6 +84,8 @@ function extractDecimalSum(rawOutput) {
             errorRate++
         }
     }
+
+    await cleanup(tempDirName)
 
     if (!errorRate) {
         console.log(CONSOLE_COLOR(COLORS.GREEN_BACKGROUND), 'All tests passed successfully')

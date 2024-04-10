@@ -36,17 +36,17 @@ inputs:
 runs:
     using: composite
     steps:
-        - name: 🧪 Test
-          if: ${{ inputs.run-tests == 'true' }}
-          shell: bash
-          run: |
-              ${{ inputs.run-tests-command }}
-
         - name: 🔨 Build
           if: ${{ inputs.run-build == 'true' }}
           shell: bash
           run: |
               ${{ inputs.run-build-command }}
+
+        - name: 🧪 Test
+          if: ${{ inputs.run-tests == 'true' }}
+          shell: bash
+          run: |
+              ${{ inputs.run-tests-command }}
 
         - name: ✅ Lint
           if: ${{ inputs.run-lint == 'true' }}

@@ -21,7 +21,7 @@ The entire calculation is done in the `my_add` function, with a binary form of e
 
 ### With `NodeJS` test-bed:
 
--   Run `./projects/task1/my_add/testing/test-bed.js`
+-   Run `npx nx run my_add:test`
 -   See results in the console
 
 ## Process
