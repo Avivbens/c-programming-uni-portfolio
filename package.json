@@ -5,7 +5,7 @@
     "main": "index.js",
     "scripts": {
         "build": "nx affected --target=build --base=origin/master --parallel",
-        "test": "echo \"Error: no test specified\" && exit 1",
+        "test": "nx affected --target=test --base=origin/master --parallel",
         "format": "prettier --write \"src/**/*\"",
         "prepare": "husky install || exit 0"
     },
