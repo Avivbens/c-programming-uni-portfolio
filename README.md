@@ -4,11 +4,11 @@ All code in this repository is written in ANSI C (C90) programming language. The
 
 CI actions would check the code in `windows-2019` environment, for every PR and push to the `master` branch.
 
-<!-- ## Description
+## Description
 
 This repository contains the following projects:
 
--   [Hello World](./hello-world) - A simple program that prints "Hello, World!" to the console. -->
+-   [my_add](./projects/task1/my_add/README.md) - Add two numbers in binary form
 
 ## Introduction
 

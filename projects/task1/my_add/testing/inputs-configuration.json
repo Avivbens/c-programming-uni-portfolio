@@ -1,0 +1,37 @@
+[
+    {
+        "inputs": [42, 123],
+        "output": {
+            "binary": "10100101",
+            "decimal": 165
+        }
+    },
+    {
+        "inputs": [0, 0],
+        "output": {
+            "binary": "0",
+            "decimal": 0
+        }
+    },
+    {
+        "inputs": [1, 1],
+        "output": {
+            "binary": "10",
+            "decimal": 2
+        }
+    },
+    {
+        "inputs": [87, 24],
+        "output": {
+            "binary": "1101111",
+            "decimal": 111
+        }
+    },
+    {
+        "inputs": [12, 987],
+        "output": {
+            "binary": "1111100111",
+            "decimal": 999
+        }
+    }
+]

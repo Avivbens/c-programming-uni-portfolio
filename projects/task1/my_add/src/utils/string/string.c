@@ -30,7 +30,7 @@ long stringToLong(const char *str) {
     long result = strtol(str, &endPtr, 10);
 
     /* Check for conversion errors */
-    if (*endPtr != EOF) {
+    if (*endPtr != '\0') {
         printf("Error: Invalid input\n");
         exit(EXIT_FAILURE);
     }

@@ -4,6 +4,10 @@
 #include "../utils/number/number.h"
 #include "../utils/string/string.h"
 
+/**
+ * Add 2 binary form numbers
+ * @return the sum of the 2 numbers in binary form
+ */
 unsigned int my_add(unsigned int a, unsigned int b) {
     int i = 0, remainder = 0;
     int currentSum = 0;
@@ -19,6 +23,10 @@ unsigned int my_add(unsigned int a, unsigned int b) {
         b /= 10;
 
         i++;
+    }
+
+    if (remainder != 0) {
+        result += (remainder * pow(10, i));
     }
 
     return (int)result;
