@@ -57,41 +57,44 @@ async function cleanup(tempDirectory) {
 }
 
 ; (async () => {
-    const testsConfiguration = require('./inputs-configuration.json')
     const { tempDirName, tempFileName } = await createTempFile()
 
-    let errorRate = 0
+    try {
+        const testsConfiguration = require('./inputs-configuration.json')
 
-    /* run tests */
-    for (const test of testsConfiguration) {
-        const { inputs, output } = test
+        let errorRate = 0
 
-        const { decimal, binary } = output
+        /* run tests */
+        for (const test of testsConfiguration) {
+            const { inputs, output } = test
 
-        await writeFile(tempFileName, inputs.join('\n'))
+            const { decimal, binary } = output
 
-        const { stdout } = await execPrm(`${cwd()}/${EXECUTABLE} < ${cwd()}/${tempFileName}`, { shell: true })
-        const binarySum = extractBinarySum(stdout)
-        const decimalSum = extractDecimalSum(stdout)
+            await writeFile(tempFileName, inputs.join('\n'))
 
-        if (String(binarySum) !== String(binary)) {
-            console.error(`${inputs.join(', ')} - Binary sum is not correct. Expected: ${binary}, got: ${binarySum}`)
-            errorRate++
+            const { stdout } = await execPrm(`${cwd()}/${EXECUTABLE} < ${cwd()}/${tempFileName}`, { shell: true })
+            const binarySum = extractBinarySum(stdout)
+            const decimalSum = extractDecimalSum(stdout)
+
+            if (String(binarySum) !== String(binary)) {
+                console.error(`${inputs.join(', ')} - Binary sum is not correct. Expected: ${binary}, got: ${binarySum}`)
+                errorRate++
+            }
+
+            if (String(decimalSum) !== String(decimal)) {
+                console.error(`${inputs.join(', ')} - Decimal sum is not correct. Expected: ${decimal}, got: ${decimalSum}`)
+                errorRate++
+            }
         }
 
-        if (String(decimalSum) !== String(decimal)) {
-            console.error(`${inputs.join(', ')} - Decimal sum is not correct. Expected: ${decimal}, got: ${decimalSum}`)
-            errorRate++
+        if (!errorRate) {
+            console.log(CONSOLE_COLOR(COLORS.GREEN_BACKGROUND), 'All tests passed successfully')
+            return
         }
+
+        console.error(CONSOLE_COLOR(COLORS.RED_BACKGROUND), `${errorRate} tests failed`)
+        throw new Error('Tests failed')
+    } finally {
+        await cleanup(tempDirName)
     }
-
-    await cleanup(tempDirName)
-
-    if (!errorRate) {
-        console.log(CONSOLE_COLOR(COLORS.GREEN_BACKGROUND), 'All tests passed successfully')
-        return
-    }
-
-    console.error(CONSOLE_COLOR(COLORS.RED_BACKGROUND), `${errorRate} tests failed`)
-    throw new Error('Tests failed')
 })()

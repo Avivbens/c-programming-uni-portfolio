@@ -58,42 +58,45 @@ async function cleanup(tempDirectory) {
 }
 
 ; (async () => {
-    const testsConfiguration = require('./inputs-configuration.json')
     const { tempDirName, tempFileName } = await createTempFile()
 
-    let errorRate = 0
+    try {
+        const testsConfiguration = require('./inputs-configuration.json')
 
-    /* run tests */
-    for (const test of testsConfiguration) {
-        const { inputs, output } = test
+        let errorRate = 0
 
-        const { matches, suffixes } = output
+        /* run tests */
+        for (const test of testsConfiguration) {
+            const { inputs, output } = test
 
-        await writeFile(tempFileName, inputs.join('\n'))
+            const { matches, suffixes } = output
 
-        const { stdout } = await execPrm(`${cwd()}/${EXECUTABLE} < ${cwd()}/${tempFileName}`, { shell: true })
-        const matchSum = extractMatchSum(stdout)
-        const suffixMatch = extractSuffixMatches(stdout)
+            await writeFile(tempFileName, inputs.join('\n'))
 
-        if (String(matchSum) !== String(matches)) {
-            console.error(`${inputs.join(', ')} - Match sum is not correct. Expected: ${matches}, got: ${matchSum}`)
-            errorRate++
+            const { stdout } = await execPrm(`${cwd()}/${EXECUTABLE} < ${cwd()}/${tempFileName}`, { shell: true })
+            const matchSum = extractMatchSum(stdout)
+            const suffixMatch = extractSuffixMatches(stdout)
+
+            if (String(matchSum) !== String(matches)) {
+                console.error(`${inputs.join(', ')} - Match sum is not correct. Expected: ${matches}, got: ${matchSum}`)
+                errorRate++
+            }
+
+            /* Prevent run over CI - Windows compatibility */
+            if (!process.env.CI && JSON.stringify(suffixMatch) !== JSON.stringify(suffixes)) {
+                console.error(`${inputs.join(', ')} - Matches are not correct. Expected: ${JSON.stringify(suffixes)}, got: ${JSON.stringify(suffixMatch)}`)
+                errorRate++
+            }
         }
 
-        /* Prevent run over CI - Windows compatibility */
-        if (!process.env.CI && JSON.stringify(suffixMatch) !== JSON.stringify(suffixes)) {
-            console.error(`${inputs.join(', ')} - Matches are not correct. Expected: ${JSON.stringify(suffixes)}, got: ${JSON.stringify(suffixMatch)}`)
-            errorRate++
+        if (!errorRate) {
+            console.log(CONSOLE_COLOR(COLORS.GREEN_BACKGROUND), 'All tests passed successfully')
+            return
         }
+
+        console.error(CONSOLE_COLOR(COLORS.RED_BACKGROUND), `${errorRate} tests failed`)
+        throw new Error('Tests failed')
+    } finally {
+        await cleanup(tempDirName)
     }
-
-    await cleanup(tempDirName)
-
-    if (!errorRate) {
-        console.log(CONSOLE_COLOR(COLORS.GREEN_BACKGROUND), 'All tests passed successfully')
-        return
-    }
-
-    console.error(CONSOLE_COLOR(COLORS.RED_BACKGROUND), `${errorRate} tests failed`)
-    throw new Error('Tests failed')
 })()
