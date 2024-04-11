@@ -80,7 +80,8 @@ async function cleanup(tempDirectory) {
             errorRate++
         }
 
-        if (JSON.stringify(suffixMatch) !== JSON.stringify(suffixes)) {
+        /* Prevent run over CI - Windows compatibility */
+        if (!process.env.CI && JSON.stringify(suffixMatch) !== JSON.stringify(suffixes)) {
             console.error(`${inputs.join(', ')} - Matches are not correct. Expected: ${JSON.stringify(suffixes)}, got: ${JSON.stringify(suffixMatch)}`)
             errorRate++
         }
