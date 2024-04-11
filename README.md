@@ -9,6 +9,7 @@ CI actions would check the code in `windows-2019` environment, for every PR and 
 This repository contains the following projects:
 
 -   [my_add](./projects/task1/my_add/README.md) - Add two numbers in binary form
+-   [my_suffix](./projects/task1/my_suffix/README.md) - Search for matched suffixes in a string based on a given character
 
 ## Introduction
 
