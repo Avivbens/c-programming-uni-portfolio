@@ -1,0 +1,30 @@
+[
+    {
+        "inputs": ["a", "avivbenshahar"],
+        "output": {
+            "matches": 3,
+            "suffixes": ["avivbenshahar", "ahar", "ar"]
+        }
+    },
+    {
+        "inputs": ["p", "avivbenshahar"],
+        "output": {
+            "matches": 0,
+            "suffixes": []
+        }
+    },
+    {
+        "inputs": ["u", "theopenuniversity"],
+        "output": {
+            "matches": 1,
+            "suffixes": ["university"]
+        }
+    },
+    {
+        "inputs": ["c", "computerScience"],
+        "output": {
+            "matches": 3,
+            "suffixes": ["computerScience", "cience", "ce"]
+        }
+    }
+]
