@@ -11,6 +11,7 @@ const execPrm = promisify(exec)
 
 const ROOT_DIR = cwd()
 const DEBUGGER_SYMLINK_PATH = `${ROOT_DIR}/dist/debugger`
+const BUILD_SCRIPT = (projectName) => `npx nx run ${projectName}:build:debug`
 
 /**
  * Search for an Nx project in the given directory
@@ -49,7 +50,7 @@ async function findNxProject(rootDir, dirPath) {
         process.exit(1)
     }
 
-    const nxBuildCommand = `npx nx run ${nxProject}:build:debug`
+    const nxBuildCommand = BUILD_SCRIPT(nxProject)
     console.log(`Running ${nxBuildCommand}`)
 
     await execPrm(nxBuildCommand, { stdio: 'inherit' })

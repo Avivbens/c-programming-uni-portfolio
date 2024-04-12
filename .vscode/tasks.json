@@ -3,7 +3,7 @@
         {
             "type": "shell",
             "label": "Nx build",
-            "command": "${workspaceFolder}/tools/scripts/debug-project.sh ${file}",
+            "command": "${workspaceFolder}/tools/scripts/debug-project.js ${file}",
             "options": {
                 "cwd": "${workspaceFolder}"
             },
