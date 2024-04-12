@@ -24,6 +24,10 @@ async function findNxProject(rootDir, dirPath) {
         return null
     }
 
+    if (dirPath === rootDir) {
+        return null
+    }
+
     const dirFiles = await readdir(dirPath)
     if (dirFiles.includes('project.json')) {
         const projectName = require(resolve(dirPath, 'project.json')).name
@@ -31,10 +35,6 @@ async function findNxProject(rootDir, dirPath) {
     }
 
     const parentDir = resolve(dirPath, '..')
-
-    if (parentDir === rootDir) {
-        return null
-    }
 
     return findNxProject(rootDir, parentDir)
 }
