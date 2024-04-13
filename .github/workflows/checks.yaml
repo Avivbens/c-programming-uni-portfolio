@@ -2,9 +2,15 @@
 name: PR Health Checks 🐛
 on:
     pull_request:
+        paths:
+            - 'projects/**/*'
+            - '.github/workflows/checks.yaml'
         branches:
             - master
     push:
+        paths:
+            - 'projects/**/*'
+            - '.github/workflows/checks.yaml'
         branches:
             - master
 
@@ -12,6 +18,10 @@ permissions:
     contents: read
     actions: read
     pull-requests: write
+
+concurrency:
+    group: ${{ github.workflow }}-${{ github.head_ref }}
+    cancel-in-progress: true
 
 jobs:
     PR-checks:
