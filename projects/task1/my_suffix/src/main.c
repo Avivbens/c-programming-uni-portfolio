@@ -8,6 +8,11 @@ int main(void) {
     char input;
     char *str = (char *)malloc(MAX_STR_SIZE * sizeof(char));
 
+    if (str == NULL) {
+        printf("Memory allocation failed\n");
+        exit(EXIT_FAILURE);
+    }
+
     printf("\nEnter a single character: \n");
     scanf("%c", &input);
 
