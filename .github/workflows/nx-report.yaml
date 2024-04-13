@@ -3,6 +3,9 @@ name: Nx Affected Report 📝
 
 on:
     pull_request:
+        paths:
+            - 'projects/**/*'
+            - '.github/workflows/nx-report.yaml'
         branches:
             - master
 
@@ -11,6 +14,10 @@ permissions:
     actions: read
     issues: write
     pull-requests: write
+
+concurrency:
+    group: ${{ github.workflow }}-${{ github.head_ref }}
+    cancel-in-progress: true
 
 jobs:
     Nx-affected:
