@@ -26,6 +26,11 @@ char *subString(char str[], int start, int length) {
     int index = 0;
     char *result = (char *)malloc(length + 1);
 
+    if (result == NULL) {
+        printf("Memory allocation failed\n");
+        exit(EXIT_FAILURE);
+    }
+
     while (index < length) {
         result[index] = str[start + index];
         index++;

@@ -17,6 +17,11 @@ char *binaryToDecimal(const char *binary) {
     int base = 1;
     char *res = (char *)malloc(MAX_SIZE_BINARY * sizeof(char));
 
+    if (res == NULL) {
+        printf("Memory allocation failed\n");
+        exit(EXIT_FAILURE);
+    }
+
     for (i = length - 1; i >= 0; i--) {
         if (binary[i] == '1') {
             decimalNumber += base;

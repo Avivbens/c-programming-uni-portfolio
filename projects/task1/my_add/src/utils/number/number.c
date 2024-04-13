@@ -43,6 +43,11 @@ char *numberToString(int number) {
     char *result = (char *)malloc(100 * sizeof(char));
     int i = 0;
 
+    if (result == NULL) {
+        printf("Memory allocation failed\n");
+        exit(EXIT_FAILURE);
+    }
+
     while (number != 0) {
         result[i++] = (number % 10) + '0';
         number /= 10;

@@ -16,6 +16,11 @@ int suffix(char str[], char c) {
     char *result = (char *)malloc((strLength + 2) * sizeof(char));
     char *temp = (char *)malloc(strLength * sizeof(char));
 
+    if (result == NULL || temp == NULL) {
+        printf("Memory allocation failed\n");
+        exit(EXIT_FAILURE);
+    }
+
     printf("\nMatches Analyze: \n\n");
 
     while (index < strLength) {
