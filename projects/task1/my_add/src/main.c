@@ -14,7 +14,7 @@ int main(void) {
     int sumBinary = 0;
     int sumDecimal = 0;
 
-    printf("\nEnter 2 numbers: ");
+    printf("\nEnter 2 numbers1: ");
     scanf("%s %s", a, b);
     printf("\nNumbers are: %s, %s\n", a, b);
 

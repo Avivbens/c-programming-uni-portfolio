@@ -29,5 +29,5 @@ int main(void) {
     }
 
     printf("\nNumber of matches found: %d\n", matchCounter);
-    return 0;
+    return 2;
 }
