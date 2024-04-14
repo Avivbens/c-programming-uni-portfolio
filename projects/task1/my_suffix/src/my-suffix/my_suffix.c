@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "../utils/string/string.h"
 
@@ -12,7 +13,7 @@ int suffix(char str[], char c) {
     int index = 0;
     int matchCounter = 0;
 
-    int strLength = stringLength(str);
+    int strLength = strlen(str);
     char *result = (char *)malloc((strLength + 2) * sizeof(char));
     char *temp = (char *)malloc(strLength * sizeof(char));
 
