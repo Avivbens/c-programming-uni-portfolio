@@ -7,7 +7,7 @@
         "build": "nx affected --target=build --base=origin/master --parallel",
         "test": "nx affected --target=test --base=origin/master --parallel",
         "format": "prettier --write \"src/**/*\"",
-        "prepare": "husky install || exit 0"
+        "prepare": "husky || exit 0"
     },
     "keywords": [],
     "author": {
