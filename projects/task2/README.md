@@ -2,7 +2,7 @@
 
 ## Description
 
-This function takes an array length and array of doubles with the same length, and returns a n array that contain the sum from the array beginning to the current index.
+This function takes an array length & array of doubles with the same length, and returns a n array that contain the sum from the array beginning to the current index.
 
 ## Testing
 
