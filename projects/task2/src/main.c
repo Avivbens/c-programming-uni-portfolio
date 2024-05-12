@@ -42,5 +42,8 @@ int main(void) {
     result = partial_sums(elements, elements_count);
     print_array(result, (char *)"%.2lf \n", elements_count, 1);
 
+    free(elements);
+    free(result);
+
     return 0;
 }
