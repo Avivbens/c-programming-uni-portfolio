@@ -4,42 +4,10 @@
     "projectType": "application",
     "sourceRoot": "./{projectRoot}/src",
     "targets": {
-        "build": {
-            "executor": "nx:run-commands",
-            "defaultConfiguration": "production",
-            "configurations": {
-                "debug": {
-                    "commands": [
-                        "make -C {projectRoot}/src/ target='$(PWD)/dist/{projectName}' name={projectName} cflags='-ggdb -Iinclude'"
-                    ]
-                },
-                "production": {
-                    "commands": ["make -C {projectRoot}/src/ target='$(PWD)/dist/{projectName}' name={projectName}"]
-                }
-            }
-        },
-        "run": {
-            "executor": "nx:run-commands",
-            "dependsOn": ["build"],
-            "options": {
-                "commands": ["./dist/{projectName}/{projectName}"],
-                "parallel": false
-            }
-        },
-        "format": {
-            "executor": "nx:run-commands",
-            "options": {
-                "commands": ["npx clang-format -i $(find {projectRoot}/src -name '*.c' -o -name '*.h')"]
-            }
-        },
-        "format-check": {
-            "executor": "nx:run-commands",
-            "options": {
-                "commands": [
-                    "bash -c 'npx clang-format --dry-run -Werror $(find {projectRoot}/src -name '*.c' -o -name '*.h')'"
-                ]
-            }
-        }
+        "build": {},
+        "run": {},
+        "format": {},
+        "format-check": {}
     },
     "tags": []
 }

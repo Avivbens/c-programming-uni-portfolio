@@ -5,5 +5,50 @@
         "default": ["{projectRoot}/**/*", "sharedGlobals"],
         "sharedGlobals": [],
         "production": ["default"]
+    },
+    "targetDefaults": {
+        "build": {
+            "executor": "nx:run-commands",
+            "defaultConfiguration": "production",
+            "configurations": {
+                "debug": {
+                    "commands": [
+                        "make -C {projectRoot}/src/ target='$(PWD)/dist/{projectName}' name={projectName} cflags='-ggdb -Iinclude'"
+                    ]
+                },
+                "production": {
+                    "commands": ["make -C {projectRoot}/src/ target='$(PWD)/dist/{projectName}' name={projectName}"]
+                }
+            }
+        },
+        "test": {
+            "executor": "nx:run-commands",
+            "dependsOn": ["build"],
+            "options": {
+                "commands": ["node ./{projectRoot}/testing/test-bed.js"]
+            }
+        },
+        "run": {
+            "executor": "nx:run-commands",
+            "dependsOn": ["build"],
+            "options": {
+                "commands": ["./dist/{projectName}/{projectName}"],
+                "parallel": false
+            }
+        },
+        "format": {
+            "executor": "nx:run-commands",
+            "options": {
+                "commands": ["npx clang-format -i $(find {projectRoot}/src -name '*.c' -o -name '*.h')"]
+            }
+        },
+        "format-check": {
+            "executor": "nx:run-commands",
+            "options": {
+                "commands": [
+                    "bash -c 'npx clang-format --dry-run -Werror $(find {projectRoot}/src -name '*.c' -o -name '*.h')'"
+                ]
+            }
+        }
     }
 }
