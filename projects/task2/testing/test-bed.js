@@ -2,6 +2,7 @@
 
 const { exec } = require('node:child_process')
 const { mkdtemp, writeFile } = require('node:fs/promises')
+const { resolve } = require('node:path')
 const { cwd, exit } = require('node:process')
 const { promisify } = require('node:util')
 
@@ -26,6 +27,20 @@ async function createTempFile() {
     await writeFile(tempFileName, '')
 
     return { tempDirName, tempFileName }
+}
+
+function compareArrays(arr1, arr2) {
+    if (arr1.length !== arr2.length) {
+        return false
+    }
+
+    for (let i = 0; i < arr1.length; i++) {
+        if (arr1[i] !== arr2[i]) {
+            return false
+        }
+    }
+
+    return true
 }
 
 function extractResults(rawOutput) {
@@ -67,10 +82,15 @@ async function cleanup(tempDirectory) {
             const injectInputs = `${inputs.length}\n${inputs.elements.join('\n')}`
             await writeFile(tempFileName, injectInputs)
 
-            const { stdout } = await execPrm(`${cwd()}/${EXECUTABLE} < ${cwd()}/${tempFileName}`, { shell: true })
+            const program = resolve(cwd(), EXECUTABLE)
+            const tempFile = resolve(cwd(), tempFileName)
+            const command = `${program} < ${tempFile}`
+
+            const { stdout } = await execPrm(command, { shell: true })
             const runResults = extractResults(stdout)
 
-            if (JSON.stringify(runResults) !== JSON.stringify(results)) {
+            const isIdentical = compareArrays(runResults, results)
+            if (!isIdentical) {
                 console.error(`Test failed: ${JSON.stringify(runResults)} => ${JSON.stringify(results)}`)
                 errorRate++
             }

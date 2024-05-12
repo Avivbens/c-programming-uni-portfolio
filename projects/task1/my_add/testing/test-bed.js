@@ -2,6 +2,7 @@
 
 const { exec } = require('node:child_process')
 const { mkdtemp, writeFile } = require('node:fs/promises')
+const { resolve } = require('node:path')
 const { cwd } = require('node:process')
 const { promisify } = require('node:util')
 
@@ -72,7 +73,11 @@ async function cleanup(tempDirectory) {
 
             await writeFile(tempFileName, inputs.join('\n'))
 
-            const { stdout } = await execPrm(`${cwd()}/${EXECUTABLE} < ${cwd()}/${tempFileName}`, { shell: true })
+            const program = resolve(cwd(), EXECUTABLE)
+            const tempFile = resolve(cwd(), tempFileName)
+            const command = `${program} < ${tempFile}`
+
+            const { stdout } = await execPrm(command, { shell: true })
             const binarySum = extractBinarySum(stdout)
             const decimalSum = extractDecimalSum(stdout)
 
