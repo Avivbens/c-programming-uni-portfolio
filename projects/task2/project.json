@@ -5,7 +5,6 @@
     "sourceRoot": "./{projectRoot}/src",
     "targets": {
         "build": {},
-        "test": {},
         "run": {},
         "format": {},
         "format-check": {}
