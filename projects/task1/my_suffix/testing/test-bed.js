@@ -2,6 +2,7 @@
 
 const { exec } = require('node:child_process')
 const { mkdtemp, writeFile } = require('node:fs/promises')
+const { resolve } = require('node:path')
 const { cwd } = require('node:process')
 const { promisify } = require('node:util')
 
@@ -34,6 +35,20 @@ function extractMatchSum(rawOutput) {
     const [, result] = match ?? []
 
     return result ?? 0
+}
+
+function compareArrays(arr1, arr2) {
+    if (arr1.length !== arr2.length) {
+        return false
+    }
+
+    for (let i = 0; i < arr1.length; i++) {
+        if (arr1[i] !== arr2[i]) {
+            return false
+        }
+    }
+
+    return true
 }
 
 function extractSuffixMatches(rawOutput) {
@@ -73,7 +88,11 @@ async function cleanup(tempDirectory) {
 
             await writeFile(tempFileName, inputs.join('\n'))
 
-            const { stdout } = await execPrm(`${cwd()}/${EXECUTABLE} < ${cwd()}/${tempFileName}`, { shell: true })
+            const program = resolve(cwd(), EXECUTABLE)
+            const tempFile = resolve(cwd(), tempFileName)
+            const command = `${program} < ${tempFile}`
+
+            const { stdout } = await execPrm(command, { shell: true })
             const matchSum = extractMatchSum(stdout)
             const suffixMatch = extractSuffixMatches(stdout)
 
@@ -82,8 +101,11 @@ async function cleanup(tempDirectory) {
                 errorRate++
             }
 
-            /* Prevent run over CI - Windows compatibility */
-            if (!process.env.CI && JSON.stringify(suffixMatch) !== JSON.stringify(suffixes)) {
+            const isIdentical = compareArrays(suffixMatch, suffixes)
+            /**
+             * Ignore this test over CI
+             */
+            if (!isIdentical && !process.env.CI) {
                 console.error(`${inputs.join(', ')} - Matches are not correct. Expected: ${JSON.stringify(suffixes)}, got: ${JSON.stringify(suffixMatch)}`)
                 errorRate++
             }

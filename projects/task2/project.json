@@ -6,6 +6,7 @@
     "targets": {
         "build": {},
         "run": {},
+        "test": {},
         "format": {},
         "format-check": {}
     },
