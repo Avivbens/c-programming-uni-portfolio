@@ -6,6 +6,16 @@ This function takes two numbers as input and returns their sum.
 
 The entire calculation is done in the `my_add` function, with a binary form of each number.
 
+## Compilation
+
+### With Nx
+
+-   Run `npx nx run my_add:build`
+
+### With Make
+
+-   Run `make -C {projectRoot}/src/ target='$(PWD)/dist/my_add' name=my_add`
+
 ## Testing
 
 ### Manual Testing

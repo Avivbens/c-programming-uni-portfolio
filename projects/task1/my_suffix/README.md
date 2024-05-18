@@ -4,6 +4,16 @@
 
 This function takes a string and a character, prints all suffixes of the string that start with the character, and return the number of suffixes.
 
+## Compilation
+
+### With Nx
+
+-   Run `npx nx run my_suffix:build`
+
+### With Make
+
+-   Run `make -C {projectRoot}/src/ target='$(PWD)/dist/my_suffix' name=my_suffix`
+
 ## Testing
 
 ### Manual Testing

@@ -4,6 +4,16 @@
 
 This function takes an array length & array of doubles with the same length, and returns a n array that contain the sum from the array beginning to the current index.
 
+## Compilation
+
+### With Nx
+
+-   Run `npx nx run task2:build`
+
+### With Make
+
+-   Run `make -C {projectRoot}/src/ target='$(PWD)/dist/task2' name=task2`
+
 ## Testing
 
 ### Manual Testing
