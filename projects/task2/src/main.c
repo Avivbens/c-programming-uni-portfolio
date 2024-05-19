@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "./constants/constants.h"
 #include "./partial-sums/partial-sums.h"
 #include "./utils/array/array.h"
 
@@ -14,8 +15,8 @@ int main(void) {
 
     elements = (double *)malloc(elements_count * sizeof(double));
     if (elements == NULL) {
-        printf("Memory allocation failed\n");
-        exit(1);
+        fprintf(stderr, "Memory allocation failed\n");
+        exit(MEMORY_OVERFLOW);
     }
 
     /**

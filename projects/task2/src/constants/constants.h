@@ -1,0 +1,1 @@
+#define MEMORY_OVERFLOW -1
