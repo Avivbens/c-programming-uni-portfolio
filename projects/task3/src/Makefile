@@ -10,7 +10,7 @@ build:
 	$(eval FILES := $(shell find . -type f -name '*.c' | sed 's/\.c//g'))
 	@echo "Files: $(FILES)"
 
-	$(eval DIRECTORIES_TO_CREATE := $(shell find . -type d))
+	$(eval DIRECTORIES_TO_CREATE := $(shell find . -type d | sed 's/\.\///g'))
 	@echo "dirs: $(DIRECTORIES_TO_CREATE)"
 
 	@echo "Creating directories..."
@@ -25,7 +25,12 @@ build:
 link:
 	@echo "Linking project..."
 
+ifeq ($(OS),Windows_NT)
+	$(eval FILES := $(shell powershell -Command "Get-ChildItem -Path $(target) -Filter '*.o' -Recurse | Select-Object -ExpandProperty FullName"))
+else
 	$(eval FILES := $(shell find $(target) -type f -name '*.o'))
+endif
+
 	@echo "Files: $(FILES)"
 
 	$(eval TARGET_NAME := $(shell echo "$(target)/$(name)"))
