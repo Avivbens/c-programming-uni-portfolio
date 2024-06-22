@@ -32,7 +32,7 @@
             "executor": "nx:run-commands",
             "dependsOn": ["build"],
             "options": {
-                "commands": ["tools/scripts/run-project.sh {projectName}"],
+                "command": "bash -c './dist/{projectName}/{projectName} || ./dist/{projectName}/{projectName}.exe'",
                 "parallel": false
             }
         },
