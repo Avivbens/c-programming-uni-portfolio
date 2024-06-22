@@ -5,7 +5,12 @@
     "sourceRoot": "./{projectRoot}/src",
     "targets": {
         "build": {},
-        "run": {},
+        "run": {
+            "options": {
+                "command": "bash -c './dist/{projectName}/{projectName} {args.input} || ./dist/{projectName}/{projectName}.exe {args.input}'",
+                "parallel": false
+            }
+        },
         "format": {},
         "format-check": {}
     },
