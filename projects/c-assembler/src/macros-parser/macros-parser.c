@@ -75,8 +75,8 @@ int macro_registration(String file_path) {
             /**
              * Clear macro values
              */
-            memset(macro_name, 0, MAX_LINE_LENGTH);
-            memset(macro_value, 0, MAX_MACRO_SIZE);
+            memset(macro_name, '\0', MAX_LINE_LENGTH);
+            memset(macro_value, '\0', MAX_MACRO_SIZE);
 
             continue;
         }
@@ -88,7 +88,7 @@ int macro_registration(String file_path) {
         /**
          * Insert macro values
          */
-        snprintf(macro_value, MAX_MACRO_SIZE, "%s%s", macro_value, line);
+        strcat(macro_value, line);
     }
 
     /**
