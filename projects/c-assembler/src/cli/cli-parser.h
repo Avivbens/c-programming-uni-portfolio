@@ -1,4 +1,4 @@
-#include "../utils/string.h"
+#include "../utils/string/string.h"
 
 #define FILE_EXTENSION ".as"
 #define MAX_PATH_LENGTH 128

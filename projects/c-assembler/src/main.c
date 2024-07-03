@@ -3,7 +3,8 @@
 
 #include "./cli/cli-parser.h"
 #include "./file-handler/file-handler.h"
-#include "./utils/string.h"
+#include "./macros-parser/macros-parser.h"
+#include "./utils/string/string.h"
 
 int main(int argc, char *argv[]) {
     int i = 0;
@@ -24,7 +25,7 @@ int main(int argc, char *argv[]) {
     }
 
     for (i = 0; files[i] != NULL; i++) {
-        printf("%s\n", files[i]);
+        macro_registration(files[i]);
     }
 
     free(files);
