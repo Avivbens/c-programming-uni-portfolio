@@ -1,6 +1,6 @@
 #include <stdint.h>
 
-#include "../string.h"
+#include "../string/string.h"
 
 #ifndef SET_H
 #define SET_H
@@ -28,3 +28,4 @@ String get_table(HashTable *hashmap, String key);
 int has_table(HashTable *hashmap, String key);
 int remove_table(HashTable *hashmap, String key);
 void free_hashtable(HashTable *hashmap);
+void print_table(HashTable *hashtable);

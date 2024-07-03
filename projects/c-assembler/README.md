@@ -5,5 +5,5 @@
 ### Run with arguments
 
 ```bash
-nx run c-assembler:run --args="--input projects/c-assembler/assets/file1"
+nx run c-assembler:run --args="--input projects/c-assembler/assets/with-macros"
 ```

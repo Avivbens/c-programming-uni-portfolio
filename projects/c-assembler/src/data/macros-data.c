@@ -33,3 +33,16 @@ String get_macro(String name) {
 
     return get_table(macros, name);
 }
+
+int has_macro(String name) {
+    init_macros();
+
+    return has_table(macros, name);
+}
+
+void debug_macros(void) {
+    init_macros();
+
+    printf("Macros:\n");
+    print_table(macros);
+}

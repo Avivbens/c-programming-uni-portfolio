@@ -107,6 +107,20 @@ int remove_table(HashTable *hashtable, String key) {
     return REMOVE_FAIL;
 }
 
+void print_table(HashTable *hashtable) {
+    int i;
+
+    for (i = 0; i < TABLE_SIZE; i++) {
+        HashNode *node = hashtable->table[i];
+        while (node != NULL) {
+            printf("\n-------------\n");
+            printf("Key: \n%s\n\nValue: \n%s\n", node->key, node->value);
+            printf("\n-------------\n");
+            node = node->next;
+        }
+    }
+}
+
 void free_hashtable(HashTable *hashtable) {
     int i;
 
