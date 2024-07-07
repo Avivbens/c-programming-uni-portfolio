@@ -7,8 +7,6 @@
 #include "./utils/string/string.h"
 
 int main(int argc, char *argv[]) {
-    int i = 0;
-
     /**
      * Get the files names from the command line arguments
      */
@@ -17,16 +15,12 @@ int main(int argc, char *argv[]) {
     /**
      * Verify all files exists
      */
-    for (i = 0; files[i] != NULL; i++) {
-        if (!is_file_exists(files[i])) {
-            fprintf(stderr, "Error: File %s does not exist\n", files[i]);
-            exit(EXIT_FAILURE);
-        }
-    }
+    verify_files_exists(files);
 
-    for (i = 0; files[i] != NULL; i++) {
-        macro_registration(files[i]);
-    }
+    /**
+     * Handle macros - register and create post-processed files
+     */
+    handle_macros(files);
 
     free(files);
     return 0;
