@@ -1,4 +1,4 @@
-#include "./file-handler.h"
+#include "file-handler.h"
 
 #include <unistd.h>
 
