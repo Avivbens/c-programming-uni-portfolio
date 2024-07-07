@@ -103,7 +103,6 @@ static String create_post_processed_file(String file_name) {
          * Replace macros with their values
          */
         macro_name = extract_macro_name(line);
-        printf("macro_name: |%s|\n", macro_name);
         if (macro_name == NULL) {
             printf("Error: Could not allocate memory for macro name\n");
             exit(EXIT_FAILURE);
@@ -111,7 +110,6 @@ static String create_post_processed_file(String file_name) {
 
         if (has_macro(macro_name)) {
             macro_value = get_macro(macro_name);
-            printf("macro_value: |%s|\n", macro_value);
 
             if (macro_value == NULL) {
                 printf("Error: Macro %s does not exist\n", macro_name);
