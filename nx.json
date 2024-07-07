@@ -8,6 +8,7 @@
     },
     "targetDefaults": {
         "build": {
+            "cache": true,
             "executor": "nx:run-commands",
             "defaultConfiguration": "production",
             "configurations": {
