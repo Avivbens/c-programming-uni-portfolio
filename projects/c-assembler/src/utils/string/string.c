@@ -1,9 +1,13 @@
-#include "./string.h"
+#include "string.h"
 
+#include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
+/**
+ * Replace a substring with another substring
+ */
 String replace_substring(String original, String to_replace,
                          String replacement) {
     String temp = original;
@@ -46,4 +50,31 @@ String replace_substring(String original, String to_replace,
     *helperPtr = '\0';
 
     return newStr;
+}
+
+/**
+ * Trim leading and trailing spaces from a string
+ */
+String trim_string(String str) {
+    String end;
+
+    /* Trim leading space */
+    while (isspace((unsigned char)*str)) {
+        str++;
+    }
+
+    if (*str == '\0') {
+        return str;
+    }
+
+    /* Trim trailing space */
+    end = str + strlen(str) - 1;
+    while (end > str && isspace((unsigned char)*end)) {
+        end--;
+    }
+
+    /* Write new null terminator */
+    *(end + 1) = '\0';
+
+    return str;
 }
