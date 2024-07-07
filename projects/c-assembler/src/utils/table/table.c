@@ -41,6 +41,8 @@ HashTable *create_table(void) {
 }
 
 void insert_table(HashTable *hashtable, String key, String value) {
+    String copy_key = strdup(key);
+    String copy_value = strdup(value);
     unsigned int slot = hash(key);
     HashNode *new_node = (HashNode *)malloc(sizeof(HashNode));
 
@@ -49,22 +51,29 @@ void insert_table(HashTable *hashtable, String key, String value) {
         exit(EXIT_FAILURE);
     }
 
-    new_node->key = strdup(key);
-    new_node->value = strdup(value);
+    new_node->key = copy_key;
+    new_node->value = copy_value;
     new_node->next = hashtable->table[slot];
     hashtable->table[slot] = new_node;
 }
 
 String get_table(HashTable *hashtable, String key) {
     unsigned int slot = hash(key);
-    HashNode *node = hashtable->table[slot];
+    HashNode **table = hashtable->table;
+    HashNode *node;
 
-    while (node != NULL && strcmp(node->key, key) != 0) {
-        node = node->next;
+    if (table == NULL) {
+        return NULL;
     }
+
+    node = table[slot];
 
     if (node == NULL) {
         return NULL;
+    }
+
+    while (node != NULL && strcmp(node->key, key) != 0) {
+        node = node->next;
     }
 
     return node->value;
@@ -76,8 +85,22 @@ int has_table(HashTable *hashtable, String key) {
 
 int remove_table(HashTable *hashtable, String key) {
     unsigned int slot = hash(key);
-    HashNode *node = hashtable->table[slot];
+    HashNode **table = hashtable->table;
     HashNode *prev = NULL;
+    HashNode *node;
+
+    if (table == NULL) {
+        return REMOVE_FAIL;
+    }
+
+    node = table[slot];
+
+    /**
+     * The key was not found in the hashtable
+     */
+    if (node == NULL) {
+        return REMOVE_FAIL;
+    }
 
     while (node != NULL && strcmp(node->key, key) != 0) {
         prev = node;
@@ -85,17 +108,10 @@ int remove_table(HashTable *hashtable, String key) {
     }
 
     /**
-     * The key was not found in the hashtable
-     */
-    if (node == NULL) {
-        return REMOVE_SUCCESS;
-    }
-
-    /**
      * The key was found in the hashtable
      */
     if (prev == NULL) {
-        hashtable->table[slot] = node->next;
+        table[slot] = node->next;
     } else {
         prev->next = node->next;
     }
@@ -104,14 +120,20 @@ int remove_table(HashTable *hashtable, String key) {
     free(node->value);
     free(node);
 
-    return REMOVE_FAIL;
+    return REMOVE_SUCCESS;
 }
 
 void print_table(HashTable *hashtable) {
+    HashNode **table = hashtable->table;
+    HashNode *node;
     int i;
 
+    if (table == NULL) {
+        return;
+    }
+
     for (i = 0; i < TABLE_SIZE; i++) {
-        HashNode *node = hashtable->table[i];
+        node = table[i];
         while (node != NULL) {
             printf("\n-------------\n");
             printf("Key: \n%s\n\nValue: \n%s\n", node->key, node->value);
@@ -122,12 +144,16 @@ void print_table(HashTable *hashtable) {
 }
 
 void free_hashtable(HashTable *hashtable) {
+    HashNode **table = hashtable->table;
+    HashNode *node;
+    HashNode *temp;
+
     int i;
 
     for (i = 0; i < TABLE_SIZE; i++) {
-        HashNode *node = hashtable->table[i];
+        node = table[i];
         while (node != NULL) {
-            HashNode *temp = node;
+            temp = node;
             node = node->next;
             free(temp->key);
             free(temp->value);
