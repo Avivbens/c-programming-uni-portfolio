@@ -9,7 +9,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/dist/debugger",
-            "args": [],
+            "args": ["projects/c-assembler/assets/with-macros"],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],
