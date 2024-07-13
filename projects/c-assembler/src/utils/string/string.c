@@ -78,3 +78,19 @@ String trim_string(String str) {
 
     return str;
 }
+String get_first_from_line(const String line) {
+    int length = strlen(line);
+    int end = 0;
+    while (end < length && line[end] != ' ' && line[end] != '\0') {
+        end++;
+    }
+    if (end == 0) return NULL;
+    String word = (String)malloc(sizeof(char) * (end + 1));
+    if (word == NULL) {
+        printf("Error: Could not allocate memory\n");
+        exit(EXIT_FAILURE);
+    }
+    strncpy(word, line, end);
+    word[end] = '\0';
+    return word;
+}
