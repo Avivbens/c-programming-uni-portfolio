@@ -3,8 +3,8 @@
 
 #include "./cli/cli-parser.h"
 #include "./data/labels-data.h"
+#include "./data/symbols-table.c"
 #include "./file-handler/file-handler.h"
-#include "./init/init-symbols.c"
 #include "./macros-parser/macros-parser.h"
 #include "./utils/string/string.h"
 
@@ -24,8 +24,10 @@ int main(int argc, char *argv[]) {
      * Handle macros - register and create post-processed files
      */
     handle_macros(files);
-    HashTable *symbolsTable = create_symbols_table_first_iteration(files);
-    create_symbols_table_second_iteration(files, symbolsTable);
+    /**
+     * Handle macros - register and create post-processed files
+     */
+    process_symbols_table(files);
     free(files);
     return 0;
 }

@@ -1,19 +1,8 @@
+
+#include "symbols-table.h"
+
 #include <stdio.h>
 #include <stdlib.h>
-
-#include "../../src/cli/cli-parser.c"
-#include "../../src/cli/cli-parser.h"
-#include "../constants/constants.h"
-#include "../data/labels-data.h"
-#include "../utils/label/label.c"
-#include "../utils/string/string.c"
-#include "../utils/table/table.c"
-#include "../utils/table/table.h"
-
-typedef struct Symbol {
-    char *name;
-    char *value;
-} Symbol;
 
 static int label_registration(String file_name, HashTable *symbolsTable) {
     FILE *file;
@@ -40,8 +29,8 @@ static int label_registration(String file_name, HashTable *symbolsTable) {
         if (is_word_label == 0)
             continue;
         else {
-            // check if the word if not already in the symbol table or extern
-            // table if yes, exit with error if not - insert
+            /**  check if the word if not already in the symbol table or extern
+             * table if yes, exit with error if not - insert */
             if (get_table(symbolsTable, first_word) != NULL) {
                 printf("label already exits");
                 exit(EXIT_FAILURE);
@@ -69,14 +58,14 @@ static int label_fill(String file_name, HashTable *symbolsTable) {
     }
     int word_counter = 0;
     while (fgets(line, sizeof(line), file)) {
-        String first_word = get_first_from_line(line);
+        String first_word = get_first_word_from_line(line);
         int is_word_label = is_label(first_word);
         if (is_word_label == 0) {
             word_counter++;
             continue;
         } else {
             update_table(symbolsTable, first_word,
-                         ic + word_counter);  // initial value
+                         instCounter + word_counter); /* initial value*/
         }
     }
 }
@@ -93,7 +82,11 @@ void fill_symbols_table(HashTable *symbolsTable, String *file_names) {
     for (i = 0; file_names[i] != NULL; i++) {
         label_fill(file_names[i], symbolsTable);
     }
-    ic += 100;
+    instCounter += 100;
+}
+void process_symbols_table(String *file_names) {
+    HashTable *symbolsTable = create_symbols_table_first_iteration(file_names);
+    create_symbols_table_second_iteration(file_names, symbolsTable);
 }
 
 HashTable *create_symbols_table_first_iteration(String *file_names) {

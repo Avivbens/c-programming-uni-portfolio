@@ -78,7 +78,20 @@ String trim_string(String str) {
 
     return str;
 }
-String get_first_from_line(const String line) {
+/**
+ * Extracts the first word from a given line.
+ *
+ * This function scans the input line and returns the first word it encounters.
+ * If the line is empty or starts with a space, it returns NULL. If memory
+ * allocation for the first word fails, it logs an error and exits the program
+ * with EXIT_FAILURE.
+ *
+ * @param line The input line from which to extract the first word.
+ * @returns A dynamically allocated string containing the first word of the
+ * line, or NULL if the line is empty or starts with a space.
+ */
+
+String get_first_word_from_line(const String line) {
     int length = strlen(line);
     int end = 0;
     while (end < length && line[end] != ' ' && line[end] != '\0') {
