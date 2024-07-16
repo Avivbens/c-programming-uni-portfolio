@@ -18,14 +18,20 @@ int is_label(const char* str) {
     if (len > MAX_LABEL_LENGTH + 1) {
         return 0;
     }
+
     if (!isalpha(str[0])) {
         return 0;
     }
+
     if (str[len - 1] != ':') {
         return 0;
     }
+
     for (i = 1; i < len - 1; i++) {
-        if (!isalnum(str[i])) return 0;
+        if (!isalnum(str[i])) {
+            return 0;
+        }
     }
+
     return 1;
 }

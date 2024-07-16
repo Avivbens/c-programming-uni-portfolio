@@ -8,8 +8,8 @@ static int label_registration(String file_name, HashTable *symbolsTable) {
     FILE *file;
     int exit_code = EXIT_SUCCESS;
     char line[MAX_LINE_LENGTH];
-    String file_path =
-        get_file_name_with_extension(file_name, ORIGINAL_FILE_EXTENSION);
+    String file_path = get_file_name_with_extension(
+        file_name, (String)ORIGINAL_FILE_EXTENSION);
     String label_name = (String)malloc(MAX_LABEL_LENGTH);
 
     if (label_name == NULL) {
@@ -24,49 +24,59 @@ static int label_registration(String file_name, HashTable *symbolsTable) {
     }
 
     while (fgets(line, sizeof(line), file)) {
-        String first_word = get_first_from_line(line);
+        String first_word = get_first_word_from_line(line);
         int is_word_label = is_label(first_word);
-        if (is_word_label == 0)
+        if (is_word_label == 0) {
             continue;
-        else {
-            /**  check if the word if not already in the symbol table or extern
-             * table if yes, exit with error if not - insert */
-            if (get_table(symbolsTable, first_word) != NULL) {
-                printf("label already exits");
-                exit(EXIT_FAILURE);
-            }
-            insert_table(symbolsTable, first_word, "0");  // initial value
         }
+
+        /**
+         * check if the word if not already in the symbol table or extern table
+         * if yes - exit with error
+         * if not - insert
+         */
+        if (get_table(symbolsTable, first_word) != NULL) {
+            printf("label %s already exits", first_word);
+            exit_code = EXIT_FAILURE;
+        }
+
+        insert_table(symbolsTable, first_word, (String) "0");
     }
+
+    return exit_code;
 }
 
 static int label_fill(String file_name, HashTable *symbolsTable) {
     FILE *file;
     int exit_code = EXIT_SUCCESS;
     char line[MAX_LINE_LENGTH];
-    String file_path =
-        get_file_name_with_extension(file_name, ORIGINAL_FILE_EXTENSION);
+    String file_path = get_file_name_with_extension(
+        file_name, (String)ORIGINAL_FILE_EXTENSION);
+
+    int word_counter = 0;
+
     String label_name = (String)malloc(MAX_LABEL_LENGTH);
     if (label_name == NULL) {
         fprintf(stderr, "Error: Could not allocate memory for label name\n");
         exit(EXIT_FAILURE);
     }
+
     file = fopen(file_path, "r");
     if (file == NULL) {
         printf("Error: Could not open file %s\n", file_name);
         return EXIT_FAILURE;
     }
-    int word_counter = 0;
+
     while (fgets(line, sizeof(line), file)) {
         String first_word = get_first_word_from_line(line);
         int is_word_label = is_label(first_word);
         if (is_word_label == 0) {
             word_counter++;
             continue;
-        } else {
-            update_table(symbolsTable, first_word,
-                         instCounter + word_counter); /* initial value*/
         }
+
+        update_table(symbolsTable, first_word,
+                     instCounter + word_counter); /* initial value*/
     }
 }
 
