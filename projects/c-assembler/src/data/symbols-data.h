@@ -1,4 +1,4 @@
-#include "../../src/cli/cli-parser.h"
+#include "../cli/cli-parser.h"
 #include "../constants/constants.h"
 #include "../utils/label/label.h"
 #include "../utils/string/string.h"

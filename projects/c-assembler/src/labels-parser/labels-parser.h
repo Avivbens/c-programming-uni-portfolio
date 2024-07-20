@@ -1,8 +1,7 @@
-#include "../../cli/cli-parser.h"
-#include "../../constants/constants.h"
-#include "../../data/symbols-data.h"
-#include "../../utils/string/string.h"
-#include "label.h"
+#include "../cli/cli-parser.h"
+#include "../constants/constants.h"
+#include "../data/symbols-data.h"
+#include "../utils/string/string.h"
 
 #define FILL_SUCCESS 1
 #define FILL_FAIL 0
