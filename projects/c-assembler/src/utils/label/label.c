@@ -4,15 +4,20 @@
 #include <stdio.h>
 #include <string.h>
 
-/**  function to determine if a string is a label
+/**
+ * function to determine if a string is a label
+ *
  * a label must:
  * start with an alphabet character(upper or lower)
  * followed by alphabets characters and or digits only
  * the max length is 31 characters
  * The last character must be ':' (and be max in the 32th index)
- * no spaces allowed at all */
+ * no spaces allowed at all
+ *
+ * @returns 1 if the string is a label, 0 otherwise
+ */
 
-int is_label(const char* str) {
+int is_label(String str) {
     int i;
     int len = strlen(str);
     if (len > MAX_LABEL_LENGTH + 1) {

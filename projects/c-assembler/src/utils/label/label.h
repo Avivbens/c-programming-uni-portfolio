@@ -1,3 +1,4 @@
-#include "../../../src/constants/constants.h"
+#include "../../constants/constants.h"
+#include "../string/string.h"
 
-int is_label(const char* str);
+int is_label(String str);

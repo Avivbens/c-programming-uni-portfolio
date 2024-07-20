@@ -2,8 +2,8 @@
 #include <stdlib.h>
 
 #include "./cli/cli-parser.h"
-#include "./data/symbols-table.h"
 #include "./file-handler/file-handler.h"
+#include "./labels-parser/labels-parser.h"
 #include "./macros-parser/macros-parser.h"
 #include "./utils/string/string.h"
 
@@ -22,6 +22,7 @@ int main(int argc, char *argv[]) {
      * Handle macros - register and create post-processed files
      */
     handle_macros(files);
+
     /**
      * Handle labels - register and add address
      */

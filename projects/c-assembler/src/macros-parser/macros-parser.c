@@ -45,11 +45,11 @@ static String create_post_processed_file(String file_name) {
     String macro_name = (String)malloc(MAX_LINE_LENGTH);
     String macro_value;
 
-    String original_file_path =
-        get_file_name_with_extension(file_name, ORIGINAL_FILE_EXTENSION);
+    String original_file_path = get_file_name_with_extension(
+        file_name, (String)ORIGINAL_FILE_EXTENSION);
 
-    String post_processed_file_path =
-        get_file_name_with_extension(file_name, POST_PROCESS_FILE_EXTENSION);
+    String post_processed_file_path = get_file_name_with_extension(
+        file_name, (String)POST_PROCESS_FILE_EXTENSION);
 
     if (macro_name == NULL) {
         fprintf(stderr, "Error: Could not allocate memory for macro name\n");
