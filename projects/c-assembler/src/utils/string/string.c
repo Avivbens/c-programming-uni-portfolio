@@ -101,7 +101,9 @@ String trim_string(String str) {
  */
 String get_first_word_from_line(String line) {
     int length = strlen(line);
+    String word;
     int end = 0;
+
     while (end < length && line[end] != ' ' && line[end] != '\0') {
         end++;
     }
@@ -110,7 +112,7 @@ String get_first_word_from_line(String line) {
         return NULL;
     }
 
-    String word = (String)malloc(sizeof(char) * (end + 1));
+    word = (String)malloc(sizeof(char) * (end + 1));
     if (word == NULL) {
         printf("Error: Could not allocate memory\n");
         exit(EXIT_FAILURE);
