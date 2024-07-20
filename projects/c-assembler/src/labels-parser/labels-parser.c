@@ -1,10 +1,19 @@
-
-#include "symbols-table.h"
+#include "labels-parser.h"
 
 #include <stdio.h>
 #include <stdlib.h>
 
-static int label_registration(String file_name, HashTable *symbolsTable) {
+/**
+ * First iteration over a file, Locating the labels and entering the names in
+ * the table. At this stage we will initialize the values ​​of all the
+ * labels to 0. If a label already exists, it would log an error and return
+ * EXIT_FAILURE.
+ *
+ * @throw In case of an error, it would return EXIT_FAILURE
+ * @returns EXIT_SUCCESS if all macros were registered successfully
+ */
+
+static int label_registration(String file_name) {
     FILE *file;
     int exit_code = EXIT_SUCCESS;
     char line[MAX_LINE_LENGTH];
@@ -35,18 +44,18 @@ static int label_registration(String file_name, HashTable *symbolsTable) {
          * if yes - exit with error
          * if not - insert
          */
-        if (get_table(symbolsTable, first_word) != NULL) {
+        if (!has_label(first_word)) {
             printf("label %s already exits", first_word);
             exit_code = EXIT_FAILURE;
+        } else {
+            add_label(first_word, (Symbol){first_word, 0, 0, 0});
         }
-
-        insert_table(symbolsTable, first_word, (String) "0");
     }
 
     return exit_code;
 }
 
-static int label_fill(String file_name, HashTable *symbolsTable) {
+static int label_fill(String file_name) {
     FILE *file;
     int exit_code = EXIT_SUCCESS;
     char line[MAX_LINE_LENGTH];
@@ -75,41 +84,56 @@ static int label_fill(String file_name, HashTable *symbolsTable) {
             continue;
         }
 
-        update_table(symbolsTable, first_word,
-                     instCounter + word_counter); /* initial value*/
+        /**
+         * Aviv, I think we need to add a function that knows how to update data
+         * in an existing table to the table file if it is possible to use one
+         * of the existing functions, please update me and I will correct
+         * accordingly
+         */
+        update_table(symbolsTable, first_word, instCounter + word_counter);
     }
 }
 
-void create_symbols_table(HashTable *symbolsTable, String *file_names) {
+static int fill_symbols_table(String *file_names) {
     int i;
     for (i = 0; file_names[i] != NULL; i++) {
-        label_registration(file_names[i], symbolsTable);
+        label_fill(file_names[i]);
     }
+    instCounter += SYMBOL_START_POINT;
+    return FILL_SUCCESS;
 }
 
-void fill_symbols_table(HashTable *symbolsTable, String *file_names) {
+void *handle_labels(String *file_names) {
     int i;
+    int is_failed = EXIT_SUCCESS;
+    int label_reg_res = EXIT_SUCCESS;
+    int label_fill_res = EXIT_SUCCESS;
+
+    /**
+     * Register labels
+     */
     for (i = 0; file_names[i] != NULL; i++) {
-        label_fill(file_names[i], symbolsTable);
+        label_reg_res = label_registration(file_names[i]);
+
+        if (label_reg_res == EXIT_FAILURE) {
+            is_failed = EXIT_FAILURE;
+        }
     }
-    instCounter += 100;
-}
-void process_symbols_table(String *file_names) {
-    HashTable *symbolsTable = create_symbols_table_first_iteration(file_names);
-    create_symbols_table_second_iteration(file_names, symbolsTable);
-}
 
-HashTable *create_symbols_table_first_iteration(String *file_names) {
-    static HashTable *symbolsTable = NULL;
-
-    if (symbolsTable == NULL) {
-        symbolsTable = create_table();
-        create_symbols_table(symbolsTable, file_names);
+    if (is_failed) {
+        printf("Error: Could not register labels\n");
+        exit(EXIT_FAILURE);
     }
-    return symbolsTable;
-}
 
-void create_symbols_table_second_iteration(String *file_names,
-                                           HashTable *symbolsTable) {
-    fill_symbols_table(symbolsTable, file_names);
+    /**
+     * Adding the address's value in memory
+     */
+    for (i = 0; file_names[i] != NULL; i++) {
+        label_fill_res = fill_symbols_table(file_names[i]);
+
+        if (label_fill_res == NULL) {
+            printf("Error: Could not fill the values of the labels\n");
+            exit(EXIT_FAILURE);
+        }
+    }
 }

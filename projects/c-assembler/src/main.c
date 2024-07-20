@@ -2,14 +2,12 @@
 #include <stdlib.h>
 
 #include "./cli/cli-parser.h"
-#include "./data/labels-data.h"
-#include "./data/symbols-table.c"
+#include "./data/symbols-table.h"
 #include "./file-handler/file-handler.h"
 #include "./macros-parser/macros-parser.h"
 #include "./utils/string/string.h"
 
 int main(int argc, char *argv[]) {
-    ic = 100;
     /**
      * Get the files names from the command line arguments
      */
@@ -25,9 +23,9 @@ int main(int argc, char *argv[]) {
      */
     handle_macros(files);
     /**
-     * Handle macros - register and create post-processed files
+     * Handle labels - register and add address
      */
-    process_symbols_table(files);
+    handle_labels(files);
     free(files);
     return 0;
 }

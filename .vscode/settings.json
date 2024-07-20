@@ -6,6 +6,11 @@
         "barrier": "c",
         "string": "c",
         "second.h": "c",
-        "regex": "c"
+        "regex": "c",
+        "macros-data.h": "c",
+        "typeinfo": "c",
+        "type_traits": "c",
+        "constants.h": "c",
+        "table.h": "c"
     }
 }
