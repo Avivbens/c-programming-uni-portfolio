@@ -18,6 +18,15 @@ static unsigned int hash(String key) {
     return value % TABLE_SIZE;
 }
 
+/**
+ * Create a new linkedList
+ *
+ * @returns a pointer to the linkedList
+ * @throw NULL if memory allocation fails
+ *
+ * @note The linkedList is dynamically allocated and must be freed using
+ * The value of the linkedList is a dynamic pointer to any type of data
+ */
 LinkedList *create_list(void) {
     int i;
     LinkedList *linkedList;
@@ -42,6 +51,14 @@ LinkedList *create_list(void) {
 
 /**
  * Insert a key-value pair into the linkedList
+ *
+ * @param linkedList The linkedList to insert the key-value pair into
+ * @param key The key of the pair
+ * @param value The value of the pair - a pointer to any type of data
+ * @param value_size The size of the value
+ *
+ * @returns void
+ * @throw If memory allocation fails, the program exits with EXIT_FAILURE.
  */
 void insert_list(LinkedList *linkedList, String key, void *value,
                  int value_size) {
@@ -62,6 +79,11 @@ void insert_list(LinkedList *linkedList, String key, void *value,
     linkedList->list[slot] = new_node;
 }
 
+/**
+ * Get the value of a key from the linkedList
+ *
+ * @returns The pointer to the value of the key, or NULL if the key is not found
+ */
 void *get_list(LinkedList *linkedList, String key) {
     unsigned int slot = hash(key);
     ListNode **list = linkedList->list;
@@ -84,10 +106,18 @@ void *get_list(LinkedList *linkedList, String key) {
     return node->value;
 }
 
+/**
+ * Check if a key exists in the linkedList
+ * @returns 1 if the key exists, 0 otherwise
+ */
 int has_list(LinkedList *linkedList, String key) {
     return get_list(linkedList, key) != NULL;
 }
 
+/**
+ * Remove a key from the linkedList
+ * @returns REMOVE_SUCCESS if the key was removed, REMOVE_FAIL otherwise
+ */
 int remove_list(LinkedList *linkedList, String key) {
     unsigned int slot = hash(key);
     ListNode **list = linkedList->list;
@@ -128,6 +158,11 @@ int remove_list(LinkedList *linkedList, String key) {
     return REMOVE_SUCCESS;
 }
 
+/**
+ * Print the linkedList
+ * @param linkedList The linkedList to print
+ * @param printer The function to print the value of the linkedList
+ */
 void print_list(LinkedList *linkedList, ValuePrinter printer) {
     ListNode **list = linkedList->list;
     ListNode *node;
@@ -149,6 +184,10 @@ void print_list(LinkedList *linkedList, ValuePrinter printer) {
     }
 }
 
+/**
+ * Free the linkedList
+ * @param linkedList The linkedList to free
+ */
 void free_linkedList(LinkedList *linkedList) {
     ListNode **list = linkedList->list;
     ListNode *node;

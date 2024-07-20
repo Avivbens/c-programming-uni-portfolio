@@ -7,6 +7,13 @@
 
 /**
  * Replace a substring with another substring
+ *
+ * @param original The original string
+ * @param to_replace The substring to replace
+ * @param replacement The substring to replace with
+ *
+ * @returns A dynamically allocated string with the replaced substring
+ * @throw If memory allocation fails, the program exits with EXIT_FAILURE.
  */
 String replace_substring(String original, String to_replace,
                          String replacement) {
@@ -54,6 +61,10 @@ String replace_substring(String original, String to_replace,
 
 /**
  * Trim leading and trailing spaces from a string
+ *
+ * @param str The string to trim
+ *
+ * @returns The trimmed string
  */
 String trim_string(String str) {
     String end;
@@ -78,19 +89,16 @@ String trim_string(String str) {
 
     return str;
 }
+
 /**
  * Extracts the first word from a given line.
- *
- * This function scans the input line and returns the first word it encounters.
- * If the line is empty or starts with a space, it returns NULL. If memory
- * allocation for the first word fails, it logs an error and exits the program
- * with EXIT_FAILURE.
  *
  * @param line The input line from which to extract the first word.
  * @returns A dynamically allocated string containing the first word of the
  * line, or NULL if the line is empty or starts with a space.
+ *
+ * @throw If memory allocation fails, the program exits with EXIT_FAILURE.
  */
-
 String get_first_word_from_line(String line) {
     int length = strlen(line);
     int end = 0;
