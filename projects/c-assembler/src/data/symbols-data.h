@@ -4,14 +4,14 @@
 #include "../utils/list/list.h"
 #include "../utils/string/string.h"
 
-typedef struct Symbol {
+typedef struct Label {
     char *name;
     char *value;
     int exists;
     int existsExtern;
-} Symbol;
+} Label;
 
+int add_label(String name, Label *value);
+Label *get_label(String name);
 int has_label(String name);
-Symbol get_label(String name);
-int add_label(String name, Symbol value);
-LinkedList *get_symbols_list(void);
+LinkedList *get_labels_list(void);

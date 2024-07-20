@@ -3,6 +3,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+static void print_string(void* data) { printf("%s", (String)data); }
+
 LinkedList* get_macros_list(void) {
     static LinkedList* macros = NULL;
 
@@ -14,6 +16,7 @@ LinkedList* get_macros_list(void) {
 }
 
 int add_macro(String name, String value) {
+    int value_size = sizeof(String);
     LinkedList* macros = get_macros_list();
 
     if (has_list(macros, name)) {
@@ -21,7 +24,7 @@ int add_macro(String name, String value) {
         return EXIT_FAILURE;
     }
 
-    insert_list(macros, name, value);
+    insert_list(macros, name, value, value_size);
 
     return EXIT_SUCCESS;
 }
@@ -29,7 +32,7 @@ int add_macro(String name, String value) {
 String get_macro(String name) {
     LinkedList* macros = get_macros_list();
 
-    return get_list(macros, name);
+    return (String)get_list(macros, name);
 }
 
 int has_macro(String name) {
@@ -42,5 +45,5 @@ void debug_macros(void) {
     LinkedList* macros = get_macros_list();
 
     printf("Macros:\n");
-    print_list(macros);
+    print_list(macros, print_string);
 }

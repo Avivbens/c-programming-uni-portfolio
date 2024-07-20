@@ -40,13 +40,18 @@ LinkedList *create_list(void) {
     return linkedList;
 }
 
-void insert_list(LinkedList *linkedList, String key, String value) {
+/**
+ * Insert a key-value pair into the linkedList
+ */
+void insert_list(LinkedList *linkedList, String key, void *value,
+                 int value_size) {
     String copy_key = strdup(key);
-    String copy_value = strdup(value);
+    void *copy_value = memcpy(malloc(value_size), value, value_size);
+
     unsigned int slot = hash(key);
     ListNode *new_node = (ListNode *)malloc(sizeof(ListNode));
 
-    if (new_node == NULL) {
+    if (new_node == NULL || copy_key == NULL || copy_value == NULL) {
         fprintf(stderr, "Error: Could not allocate memory for new node\n");
         exit(EXIT_FAILURE);
     }
@@ -57,7 +62,7 @@ void insert_list(LinkedList *linkedList, String key, String value) {
     linkedList->list[slot] = new_node;
 }
 
-String get_list(LinkedList *linkedList, String key) {
+void *get_list(LinkedList *linkedList, String key) {
     unsigned int slot = hash(key);
     ListNode **list = linkedList->list;
     ListNode *node;
@@ -123,7 +128,7 @@ int remove_list(LinkedList *linkedList, String key) {
     return REMOVE_SUCCESS;
 }
 
-void print_list(LinkedList *linkedList) {
+void print_list(LinkedList *linkedList, ValuePrinter printer) {
     ListNode **list = linkedList->list;
     ListNode *node;
     int i;
@@ -136,8 +141,9 @@ void print_list(LinkedList *linkedList) {
         node = list[i];
         while (node != NULL) {
             printf("\n-------------\n");
-            printf("Key: \n%s\n\nValue: \n%s\n", node->key, node->value);
-            printf("\n-------------\n");
+            printf("Key: \n%s\n\nValue: \n", node->key);
+            printer(node->value);
+            printf("\n\n-------------\n");
             node = node->next;
         }
     }

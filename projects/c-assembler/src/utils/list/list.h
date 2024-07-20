@@ -12,20 +12,23 @@
 
 typedef struct ListNode {
     String key;
-    String value;
+    void *value;
     struct ListNode *next;
 } ListNode;
 
 typedef struct LinkedList {
     ListNode **list;
 } LinkedList;
+
+typedef void (*ValuePrinter)(void *);
 #endif
 
 LinkedList *create_list(void);
 
-void insert_list(LinkedList *hashmap, String key, String value);
-String get_list(LinkedList *hashmap, String key);
-int has_list(LinkedList *hashmap, String key);
-int remove_list(LinkedList *hashmap, String key);
-void free_linkedList(LinkedList *hashmap);
-void print_list(LinkedList *linkedList);
+void insert_list(LinkedList *linkedList, String key, void *value,
+                 int value_size);
+void *get_list(LinkedList *linkedList, String key);
+int has_list(LinkedList *linkedList, String key);
+int remove_list(LinkedList *linkedList, String key);
+void print_list(LinkedList *linkedList, ValuePrinter printer);
+void free_linkedList(LinkedList *linkedList);
