@@ -15,6 +15,8 @@
  * The last character must be ':' (and be max in the 32th index)
  * no spaces allowed at all
  *
+ * TODO - we need to check if the label has a prefix, like .extern
+ *
  * @returns 1 if the string is a label, 0 otherwise
  */
 static int is_label(String str) {
@@ -42,6 +44,20 @@ static int is_label(String str) {
 }
 
 /**
+ * function to determine if a label is external
+ */
+static int is_label_extern(String str) {
+    String label_prefix = get_first_word_from_line(str);
+    int is_extern = strcmp(label_prefix, (String)LABEL_EXTERN_PREFIX);
+
+    if (is_extern == 0) {
+        return 1;
+    }
+
+    return 0;
+}
+
+/**
  * First iteration over a file, Locating the labels and entering the names in
  * the list. At this stage we will initialize the values ​​of all the
  * labels to 0. If a label already exists, it would log an error and return
@@ -53,10 +69,14 @@ static int is_label(String str) {
 static int label_registration(String file_name) {
     FILE *file;
     int exit_code = EXIT_SUCCESS;
-    char line[MAX_LINE_LENGTH];
+
     String file_path = get_file_name_with_extension(
-        file_name, (String)ORIGINAL_FILE_EXTENSION);
+        file_name, (String)POST_PROCESS_FILE_EXTENSION);
     String label_name = (String)malloc(MAX_LABEL_LENGTH);
+
+    char line[MAX_LINE_LENGTH];
+    String first_word;
+    int func_bool;
 
     if (label_name == NULL) {
         fprintf(stderr, "Error: Could not allocate memory for label name\n");
@@ -69,29 +89,55 @@ static int label_registration(String file_name) {
         return EXIT_FAILURE;
     }
 
+    /**
+     * Read file line by line
+     */
     while (fgets(line, sizeof(line), file)) {
-        String first_word = get_first_word_from_line(line);
-        int is_word_label = is_label(first_word);
-        if (is_word_label == 0) {
+        /**
+         * TODO - pass in the entire line, not just the first word
+         * Could be external logic
+         */
+        first_word = get_first_word_from_line(line);
+        func_bool = is_label(first_word);
+
+        /**
+         * If the word is not a label - continue to the next line
+         */
+        if (func_bool == 0) {
             continue;
         }
 
         /**
-         * check if the word if not already in the symbol list or extern list
-         * if yes - exit with error
-         * if not - insert
+         * Check if the word if not already declared in the labels list
+         * In case the label already exists, we check for external logic
+         *
+         * @TODO
          */
-        if (!has_label(first_word)) {
-            printf("label %s already exits", first_word);
-            exit_code = EXIT_FAILURE;
-        } else {
-            add_label(first_word, (Label){first_word, 0, 0, 0});
+        func_bool = has_label(first_word);
+        if (!func_bool) {
+            /**
+             * If the label is not already declared, we add it to the list
+             */
+
+            func_bool = 0;
+            continue;
         }
+
+        /**
+         * Handle the case where the label is already declared
+         * @TODO
+         */
+        add_label(first_word, (Label){first_word, 0, 0, 0});
+        exit_code = EXIT_FAILURE;
     }
 
     return exit_code;
 }
 
+/**
+ * @deprecated - we can use the {@link label_registration} function to support
+ * this logic
+ */
 static int label_fill(String file_name) {
     FILE *file;
     int exit_code = EXIT_SUCCESS;
@@ -131,11 +177,13 @@ static int label_fill(String file_name) {
     }
 }
 
-static int fill_symbols_list(String *file_names) {
-    int i;
-    for (i = 0; file_names[i] != NULL; i++) {
-        label_fill(file_names[i]);
-    }
+/**
+ * @deprecated - we can use the {@link label_registration} function to support
+ * this logic
+ */
+static int fill_symbols_list(String file_name) {
+    label_fill(file_name);
+
     instCounter += SYMBOL_START_POINT;
     return FILL_SUCCESS;
 }
@@ -166,11 +214,15 @@ void *handle_labels(String *file_names) {
      * Adding the address's value in memory
      */
     for (i = 0; file_names[i] != NULL; i++) {
-        label_fill_res = fill_symbols_list(file_names[i]);
+        label_fill_res = label_fill(file_names[i]);
 
         if (label_fill_res == NULL) {
-            printf("Error: Could not fill the values of the labels\n");
-            exit(EXIT_FAILURE);
+            is_failed = EXIT_FAILURE;
         }
+    }
+
+    if (is_failed) {
+        printf("Error: Could not fill the values of the labels\n");
+        exit(EXIT_FAILURE);
     }
 }
