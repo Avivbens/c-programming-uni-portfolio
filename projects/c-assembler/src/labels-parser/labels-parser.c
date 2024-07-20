@@ -5,7 +5,7 @@
 
 /**
  * First iteration over a file, Locating the labels and entering the names in
- * the table. At this stage we will initialize the values ​​of all the
+ * the list. At this stage we will initialize the values ​​of all the
  * labels to 0. If a label already exists, it would log an error and return
  * EXIT_FAILURE.
  *
@@ -40,7 +40,7 @@ static int label_registration(String file_name) {
         }
 
         /**
-         * check if the word if not already in the symbol table or extern table
+         * check if the word if not already in the symbol list or extern list
          * if yes - exit with error
          * if not - insert
          */
@@ -86,15 +86,15 @@ static int label_fill(String file_name) {
 
         /**
          * Aviv, I think we need to add a function that knows how to update data
-         * in an existing table to the table file if it is possible to use one
+         * in an existing list to the list file if it is possible to use one
          * of the existing functions, please update me and I will correct
          * accordingly
          */
-        update_table(symbolsTable, first_word, instCounter + word_counter);
+        update_list(symbolsTable, first_word, instCounter + word_counter);
     }
 }
 
-static int fill_symbols_table(String *file_names) {
+static int fill_symbols_list(String *file_names) {
     int i;
     for (i = 0; file_names[i] != NULL; i++) {
         label_fill(file_names[i]);
@@ -129,7 +129,7 @@ void *handle_labels(String *file_names) {
      * Adding the address's value in memory
      */
     for (i = 0; file_names[i] != NULL; i++) {
-        label_fill_res = fill_symbols_table(file_names[i]);
+        label_fill_res = fill_symbols_list(file_names[i]);
 
         if (label_fill_res == NULL) {
             printf("Error: Could not fill the values of the labels\n");

@@ -1,4 +1,4 @@
-#include "table.h"
+#include "list.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -18,33 +18,33 @@ static unsigned int hash(String key) {
     return value % TABLE_SIZE;
 }
 
-HashTable *create_table(void) {
+LinkedList *create_list(void) {
     int i;
-    HashTable *hashtable;
+    LinkedList *linkedList;
 
-    hashtable = (HashTable *)malloc(sizeof(HashTable));
-    hashtable->table = (HashNode **)malloc(sizeof(HashNode *) * TABLE_SIZE);
+    linkedList = (LinkedList *)malloc(sizeof(LinkedList));
+    linkedList->list = (ListNode **)malloc(sizeof(ListNode *) * TABLE_SIZE);
 
-    if (hashtable == NULL || hashtable->table == NULL) {
-        fprintf(stderr, "Error: Could not allocate memory for hashtable\n");
+    if (linkedList == NULL || linkedList->list == NULL) {
+        fprintf(stderr, "Error: Could not allocate memory for linkedList\n");
         exit(EXIT_FAILURE);
     }
 
     /**
-     * Initialize all the table elements to NULL
+     * Initialize all the list elements to NULL
      */
     for (i = 0; i < TABLE_SIZE; i++) {
-        hashtable->table[i] = NULL;
+        linkedList->list[i] = NULL;
     }
 
-    return hashtable;
+    return linkedList;
 }
 
-void insert_table(HashTable *hashtable, String key, String value) {
+void insert_list(LinkedList *linkedList, String key, String value) {
     String copy_key = strdup(key);
     String copy_value = strdup(value);
     unsigned int slot = hash(key);
-    HashNode *new_node = (HashNode *)malloc(sizeof(HashNode));
+    ListNode *new_node = (ListNode *)malloc(sizeof(ListNode));
 
     if (new_node == NULL) {
         fprintf(stderr, "Error: Could not allocate memory for new node\n");
@@ -53,20 +53,20 @@ void insert_table(HashTable *hashtable, String key, String value) {
 
     new_node->key = copy_key;
     new_node->value = copy_value;
-    new_node->next = hashtable->table[slot];
-    hashtable->table[slot] = new_node;
+    new_node->next = linkedList->list[slot];
+    linkedList->list[slot] = new_node;
 }
 
-String get_table(HashTable *hashtable, String key) {
+String get_list(LinkedList *linkedList, String key) {
     unsigned int slot = hash(key);
-    HashNode **table = hashtable->table;
-    HashNode *node;
+    ListNode **list = linkedList->list;
+    ListNode *node;
 
-    if (table == NULL) {
+    if (list == NULL) {
         return NULL;
     }
 
-    node = table[slot];
+    node = list[slot];
 
     if (node == NULL) {
         return NULL;
@@ -79,24 +79,24 @@ String get_table(HashTable *hashtable, String key) {
     return node->value;
 }
 
-int has_table(HashTable *hashtable, String key) {
-    return get_table(hashtable, key) != NULL;
+int has_list(LinkedList *linkedList, String key) {
+    return get_list(linkedList, key) != NULL;
 }
 
-int remove_table(HashTable *hashtable, String key) {
+int remove_list(LinkedList *linkedList, String key) {
     unsigned int slot = hash(key);
-    HashNode **table = hashtable->table;
-    HashNode *prev = NULL;
-    HashNode *node;
+    ListNode **list = linkedList->list;
+    ListNode *prev = NULL;
+    ListNode *node;
 
-    if (table == NULL) {
+    if (list == NULL) {
         return REMOVE_FAIL;
     }
 
-    node = table[slot];
+    node = list[slot];
 
     /**
-     * The key was not found in the hashtable
+     * The key was not found in the linkedList
      */
     if (node == NULL) {
         return REMOVE_FAIL;
@@ -108,10 +108,10 @@ int remove_table(HashTable *hashtable, String key) {
     }
 
     /**
-     * The key was found in the hashtable
+     * The key was found in the linkedList
      */
     if (prev == NULL) {
-        table[slot] = node->next;
+        list[slot] = node->next;
     } else {
         prev->next = node->next;
     }
@@ -123,17 +123,17 @@ int remove_table(HashTable *hashtable, String key) {
     return REMOVE_SUCCESS;
 }
 
-void print_table(HashTable *hashtable) {
-    HashNode **table = hashtable->table;
-    HashNode *node;
+void print_list(LinkedList *linkedList) {
+    ListNode **list = linkedList->list;
+    ListNode *node;
     int i;
 
-    if (table == NULL) {
+    if (list == NULL) {
         return;
     }
 
     for (i = 0; i < TABLE_SIZE; i++) {
-        node = table[i];
+        node = list[i];
         while (node != NULL) {
             printf("\n-------------\n");
             printf("Key: \n%s\n\nValue: \n%s\n", node->key, node->value);
@@ -143,15 +143,15 @@ void print_table(HashTable *hashtable) {
     }
 }
 
-void free_hashtable(HashTable *hashtable) {
-    HashNode **table = hashtable->table;
-    HashNode *node;
-    HashNode *temp;
+void free_linkedList(LinkedList *linkedList) {
+    ListNode **list = linkedList->list;
+    ListNode *node;
+    ListNode *temp;
 
     int i;
 
     for (i = 0; i < TABLE_SIZE; i++) {
-        node = table[i];
+        node = list[i];
         while (node != NULL) {
             temp = node;
             node = node->next;
@@ -161,6 +161,6 @@ void free_hashtable(HashTable *hashtable) {
         }
     }
 
-    free(hashtable->table);
-    free(hashtable);
+    free(linkedList->list);
+    free(linkedList);
 }
