@@ -1,7 +1,7 @@
-#include "../cli/cli-parser.h"
-#include "../constants/constants.h"
-#include "../data/macros-data.h"
-#include "../utils/string/string.h"
+#include "../../cli/cli-parser.h"
+#include "../../constants/constants.h"
+#include "../../data/macros-data.h"
+#include "../../utils/string/string.h"
 
 #define MACRO_TAG_OPEN "macr "
 #define MACRO_TAG_CLOSE "endmacr"

@@ -1,4 +1,4 @@
-#include "../file-handler/file-handler.h"
+#include "../utils/file/file.h"
 #include "../utils/string/string.h"
 
 #define ORIGINAL_FILE_EXTENSION ".as"

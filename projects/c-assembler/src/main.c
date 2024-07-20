@@ -2,9 +2,9 @@
 #include <stdlib.h>
 
 #include "./cli/cli-parser.h"
-#include "./file-handler/file-handler.h"
-#include "./labels-parser/labels-parser.h"
-#include "./macros-parser/macros-parser.h"
+#include "./parsers/labels-parser/labels-parser.h"
+#include "./parsers/macros-parser/macros-parser.h"
+#include "./utils/file/file.h"
 #include "./utils/string/string.h"
 
 int main(int argc, char *argv[]) {

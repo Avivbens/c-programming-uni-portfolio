@@ -1,7 +1,45 @@
 #include "labels-parser.h"
 
+#include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
+
+/**
+ * function to determine if a string is a label
+ *
+ * a label must:
+ * start with an alphabet character(upper or lower)
+ * followed by alphabets characters and or digits only
+ * the max length is 31 characters
+ * The last character must be ':' (and be max in the 32th index)
+ * no spaces allowed at all
+ *
+ * @returns 1 if the string is a label, 0 otherwise
+ */
+static int is_label(String str) {
+    int i;
+    int len = strlen(str);
+    if (len > MAX_LABEL_LENGTH + 1) {
+        return 0;
+    }
+
+    if (!isalpha(str[0])) {
+        return 0;
+    }
+
+    if (str[len - 1] != ':') {
+        return 0;
+    }
+
+    for (i = 1; i < len - 1; i++) {
+        if (!isalnum(str[i])) {
+            return 0;
+        }
+    }
+
+    return 1;
+}
 
 /**
  * First iteration over a file, Locating the labels and entering the names in
@@ -12,7 +50,6 @@
  * @throw In case of an error, it would return EXIT_FAILURE
  * @returns EXIT_SUCCESS if all macros were registered successfully
  */
-
 static int label_registration(String file_name) {
     FILE *file;
     int exit_code = EXIT_SUCCESS;
@@ -48,7 +85,7 @@ static int label_registration(String file_name) {
             printf("label %s already exits", first_word);
             exit_code = EXIT_FAILURE;
         } else {
-            add_label(first_word, (Symbol){first_word, 0, 0, 0});
+            add_label(first_word, (Label){first_word, 0, 0, 0});
         }
     }
 
