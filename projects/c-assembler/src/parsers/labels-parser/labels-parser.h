@@ -12,3 +12,10 @@
  * cells each instruction occupies, indicating the next available memory cell.
  */
 int instCounter;
+
+static int is_label(String str);
+static int label_registration(String file_name);
+static int label_fill(String file_name);
+static int is_label_extern(String str);
+int is_register(char *token);
+int is_command(char *token);

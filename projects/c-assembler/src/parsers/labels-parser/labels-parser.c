@@ -26,7 +26,7 @@ static int is_label(String str) {
         return 0;
     }
 
-    if (!isalpha(str[0])) {
+    if (!isalpha(str[0]) && (str[0]) != '.') {
         return 0;
     }
 
@@ -57,6 +57,24 @@ static int is_label_extern(String str) {
     return 0;
 }
 
+/* function that checks if the token and an opcode have the same name */
+int is_command(char *token) {
+    int tokenLen = strlen(token);
+    if (tokenLen > MAX_COMMAND_LENGTH || tokenLen < MIN_COMMAND_LENGTH)
+        return 0;
+    /* TODO- Add find_command function*/
+    return 1;
+}
+
+int is_register(char *token) {
+    /* register name starts with 'r' and after there is a number between 0-7 */
+    if ((strlen(token) == REGISTER_NAME_LENGTH) && token[0] == 'r' &&
+        token[1] >= '0' && token[1] <= '7') {
+        return 0;
+    }
+    return 1;
+}
+
 /**
  * First iteration over a file, Locating the labels and entering the names in
  * the list. At this stage we will initialize the values ​​of all the
@@ -69,14 +87,14 @@ static int is_label_extern(String str) {
 static int label_registration(String file_name) {
     FILE *file;
     int exit_code = EXIT_SUCCESS;
+    char line[MAX_LINE_LENGTH];
+    char token[MAX_LABEL_LENGTH]; /*holds the label */
+    String this_word;
+    int func_bool;
 
     String file_path = get_file_name_with_extension(
         file_name, (String)POST_PROCESS_FILE_EXTENSION);
     String label_name = (String)malloc(MAX_LABEL_LENGTH);
-
-    char line[MAX_LINE_LENGTH];
-    String first_word;
-    int func_bool;
 
     if (label_name == NULL) {
         fprintf(stderr, "Error: Could not allocate memory for label name\n");
@@ -97,28 +115,36 @@ static int label_registration(String file_name) {
          * TODO - pass in the entire line, not just the first word
          * Could be external logic
          */
-        first_word = get_first_word_from_line(line);
-        func_bool = is_label(first_word);
+        this_word = get_first_word_from_line(line);
+        func_bool = is_label(this_word);
 
         /**
-         * If the word is not a label - continue to the next line
+         * If the word is not a label - Checking whether this is a directive
+         * @TODO - Add a function that checks if it is a directive statement
          */
         if (func_bool == 0) {
             continue;
         }
 
         /**
-         * Check if the word if not already declared in the labels list
-         * In case the label already exists, we check for external logic
-         *
-         * @TODO
+         * Extract the name of the label itself (without ':') from the first
+         * word Check if the word if not already declared in the labels list/as
+         * a macro/as an opcode In case the label already exists, we check for
+         * external logic If all the tests come out negative, we will add the
+         * label to the symbol table
          */
-        func_bool = has_label(first_word);
+        extractToken(token,
+                     this_word); /*Extracting only the characters relevant to
+                                    the label name from the word*/
+        func_bool = label_check_before_add(
+            token); /*Sending the token to the function that checks if the label
+                       name already exists as an external/macro/action*/
         if (!func_bool) {
             /**
-             * If the label is not already declared, we add it to the list
+             * If the token passes all tests successfully, we will set the token
+             * as the label name and join the symbol table
              */
-
+            add_label(token, '0');
             func_bool = 0;
             continue;
         }
@@ -127,7 +153,6 @@ static int label_registration(String file_name) {
          * Handle the case where the label is already declared
          * @TODO
          */
-        add_label(first_word, (Label){first_word, 0, 0, 0});
         exit_code = EXIT_FAILURE;
     }
 
@@ -137,7 +162,7 @@ static int label_registration(String file_name) {
 /**
  * @deprecated - we can use the {@link label_registration} function to support
  * this logic
- */
+
 static int label_fill(String file_name) {
     FILE *file;
     int exit_code = EXIT_SUCCESS;
@@ -167,15 +192,10 @@ static int label_fill(String file_name) {
             continue;
         }
 
-        /**
-         * Aviv, I think we need to add a function that knows how to update data
-         * in an existing list to the list file if it is possible to use one
-         * of the existing functions, please update me and I will correct
-         * accordingly
-         */
         update_list(symbolsTable, first_word, instCounter + word_counter);
     }
 }
+*/
 
 /**
  * @deprecated - we can use the {@link label_registration} function to support

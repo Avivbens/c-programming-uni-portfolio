@@ -122,3 +122,33 @@ String get_first_word_from_line(String line) {
     word[end] = '\0';
     return word;
 }
+
+/**
+ * Skips to the beginning of the next word in the given line.
+ *
+ * @param line The input line from which to skip to the next word.
+ * @returns A pointer to the beginning of the next word, or NULL if there are no
+ * more words.
+ */
+
+String skip_to_next_word(String line) {
+    // Skip over the current word (non-space characters)
+    while (*line && !isspace((unsigned char)*line)) {
+        line++;
+    }
+
+    // Use trim_string to trim leading spaces and move to the next word
+    line = trim_string(line);
+
+    // Return NULL if the end of the string is reached
+    if (*line == '\0') {
+        return NULL;
+    }
+
+    return line;
+}
+
+/* function that check if we are at the end of the given token */
+int lineEnd(char *line) {
+    return line == NULL || *line == '\0' || *line == '\n';
+}
