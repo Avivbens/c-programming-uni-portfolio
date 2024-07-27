@@ -124,31 +124,45 @@ String get_first_word_from_line(String line) {
 }
 
 /**
- * Skips to the beginning of the next word in the given line.
+ * Get a word in a line based on its position
  *
- * @param line The input line from which to skip to the next word.
- * @returns A pointer to the beginning of the next word, or NULL if there are no
- * more words.
+ * @param line The input line from which to extract the word
+ * @param word_number The position of the word to extract
+ *
+ * @note
+ * First word is at position 0
  */
-
-String skip_to_next_word(String line) {
-    // Skip over the current word (non-space characters)
-    while (*line && !isspace((unsigned char)*line)) {
-        line++;
-    }
-
-    // Use trim_string to trim leading spaces and move to the next word
+String get_word(String line, int word_number) {
+    String word;
     line = trim_string(line);
 
-    // Return NULL if the end of the string is reached
-    if (*line == '\0') {
-        return NULL;
+    /* Skip over the current word (non-space characters) */
+    while (word_number > 0) {
+        /* Skip current word */
+        while (*line && !isspace((unsigned char)*line)) {
+            line++;
+        }
+
+        /* Skip over the spaces */
+        while (*line && isspace((unsigned char)*line)) {
+            line++;
+        }
+
+        /**
+         * Reached to the next word
+         */
+
+        /* End of String */
+        if (*line == '\0') {
+            return NULL;
+        }
+
+        word_number--;
     }
 
-    return line;
-}
-
-/* function that check if we are at the end of the given token */
-int lineEnd(char *line) {
-    return line == NULL || *line == '\0' || *line == '\n';
+    /**
+     * Create a copy of the word
+     */
+    word = get_first_word_from_line(line);
+    return word;
 }
