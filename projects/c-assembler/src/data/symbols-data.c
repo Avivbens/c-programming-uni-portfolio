@@ -51,42 +51,6 @@ int add_label(String name, Label* value) {
     return EXIT_SUCCESS;
 }
 
-int label_check_before_add(char token) {
-    int func_bool;
-    func_bool = has_label(token);
-    if (func_bool) {
-        /* TODO-check if label is external*/
-        printf("Error: label %s already defined as external\n", token);
-        return EXIT_FAILURE;
-    }
-    if (!func_bool) {
-        if (command_Find(token)) {
-            printf(
-                "Error: label %s name is not valid- already defined as a "
-                "command name\n",
-                token);
-            return EXIT_FAILURE;
-        }
-
-        if (has_macro(token)) {
-            printf(
-                "Error: label %s name is not valid- already defined as a "
-                "macro\n",
-                token);
-            return EXIT_FAILURE;
-        }
-
-        if (is_register(token)) {
-            printf(
-                "Error: label %s name is not valid- already defined as a "
-                "register\n",
-                token);
-            return EXIT_FAILURE;
-        }
-    }
-    return EXIT_SUCCESS;
-}
-
 /**
  * Get a label from the list
  *
@@ -121,15 +85,4 @@ void debug_labels(void) {
 
     printf("Labels:\n");
     print_list(symbolsTable, print_label);
-}
-
-char extractToken(String this_word, char* token) {
-    int i = 0;
-    while (i < MAX_LINE_LENGTH && !isspace(token[i]) && token[i] != '\0' &&
-           token[i] != ':') {
-        token[i] = this_word[i];
-        i++;
-    }
-    token[i] = '\0';
-    return token;
 }

@@ -14,5 +14,3 @@ int add_label(String name, Label *value);
 Label *get_label(String name);
 int has_label(String name);
 LinkedList *get_labels_list(void);
-int label_check_before_add(char token);
-char extractToken(String this_word, char *token);

@@ -6,36 +6,52 @@
 #include <string.h>
 
 /**
- * function to determine if a string is a label
+ * @param name - the prefix of a label (e.g. .extern)
  *
- * a label must:
- * start with an alphabet character(upper or lower)
- * followed by alphabets characters and or digits only
- * the max length is 31 characters
- * The last character must be ':' (and be max in the 32th index)
- * no spaces allowed at all
- *
- * TODO - we need to check if the label has a prefix, like .extern
- *
- * @returns 1 if the string is a label, 0 otherwise
+ * @returns:
+ * 0 - if the label is not a label type
+ * 1 - if the label is an external label
+ * 2 - if the label is an entry label
+ * 3 - if the label is a data label
+ * 4 - if the label is a string label
  */
-static int is_label(String str) {
+static LabelType get_label_type(String str) {
+    if (strcmp(str, LABEL_EXTERN_PREFIX)) {
+        return LABEL_EXTERN;
+    }
+
+    if (strcmp(str, LABEL_ENTRY_PREFIX)) {
+        return LABEL_ENTRY;
+    }
+
+    if (strcmp(str, LABEL_DATA_PREFIX)) {
+        return LABEL_DATA;
+    }
+
+    if (strcmp(str, LABEL_STRING_PREFIX)) {
+        return LABEL_STRING;
+    }
+
+    return NOT_LABEL_TYPE;
+}
+
+/**
+ * @param name - the name of the potential label
+ * @returns 1 if the string is a label, 0 otherwise
+ *
+ * @note
+ * This function only validate that the label name itself is valid
+ */
+static int is_label_name_ok(String name) {
     int i;
-    int len = strlen(str);
-    if (len > MAX_LABEL_LENGTH + 1) {
+    int len = strlen(name);
+
+    if (len > MAX_LABEL_LENGTH) {
         return 0;
     }
 
-    if (!isalpha(str[0]) && (str[0]) != '.') {
-        return 0;
-    }
-
-    if (str[len - 1] != ':') {
-        return 0;
-    }
-
-    for (i = 1; i < len - 1; i++) {
-        if (!isalnum(str[i])) {
+    for (i = 0; i < len - 1; i++) {
+        if (!isalnum(name[i])) {
             return 0;
         }
     }
@@ -44,35 +60,82 @@ static int is_label(String str) {
 }
 
 /**
- * function to determine if a label is external
+ * @param name - the name of the potential label
+ * @returns 1 if the string is a label, 0 otherwise
+ *
+ * @note
+ * A label is a string that starts with a letter or a dot, followed by a string
+ * Cannot start by a digit, and cannot contain any special characters
  */
-static int is_label_extern(String str) {
-    String label_prefix = get_first_word_from_line(str);
-    int is_extern = strcmp(label_prefix, (String)LABEL_EXTERN_PREFIX);
+static LabelType is_label(String line) {
+    LabelType label_type;
+    int len = strlen(line);
+    String first_word = (String)malloc(len * sizeof(char));
+    int flag;
 
-    if (is_extern == 0) {
-        return 1;
+    if (line[len - 1] != ':') {
+        return NOT_LABEL;
     }
 
-    return 0;
-}
-
-/* function that checks if the token and an opcode have the same name */
-int is_command(char *token) {
-    int tokenLen = strlen(token);
-    if (tokenLen > MAX_COMMAND_LENGTH || tokenLen < MIN_COMMAND_LENGTH)
-        return 0;
-    /* TODO- Add find_command function*/
-    return 1;
-}
-
-int is_register(char *token) {
-    /* register name starts with 'r' and after there is a number between 0-7 */
-    if ((strlen(token) == REGISTER_NAME_LENGTH) && token[0] == 'r' &&
-        token[1] >= '0' && token[1] <= '7') {
-        return 0;
+    /**
+     * Handle basic case for label
+     */
+    first_word = get_word(line, 0);
+    label_type = get_label_type(first_word);
+    if (label_type == NOT_LABEL_TYPE) {
+        flag = is_label_name_ok(line);
+        return flag == 0 ? NOT_LABEL : NOT_LABEL_TYPE;
     }
-    return 1;
+
+    /**
+     * Handle special cases for labels - entry, extern, etc
+     */
+    flag = is_label_name_ok(line);
+    return flag == 0 ? NOT_LABEL : label_type;
+}
+
+/**
+ * @param name - the name of the potential label
+ *
+ * @returns EXIT_SUCCESS if the label is allowed, EXIT_FAILURE otherwise
+ * @throw EXIT_FAILURE if the label is not allowed
+ *
+ * @note
+ * We cannot use operators names, register names, or command names, macro names,
+ * etc as labels
+ */
+static int is_label_name_allowed(String name) {
+    if (!is_label_name_ok(name)) {
+        return EXIT_FAILURE;
+    }
+
+    /* Cannot be a macro name */
+    if (has_macro(name)) {
+        printf(
+            "Error: label '%s' name is not valid- already defined as a macro\n",
+            name);
+        return EXIT_FAILURE;
+    }
+
+    /* Cannot be a native operand */
+    if (is_command(name)) {
+        printf(
+            "Error: label '%s' name is not valid- already defined as a command "
+            "name\n",
+            name);
+        return EXIT_FAILURE;
+    }
+
+    /* Cannot be a register */
+    if (is_register(name)) {
+        printf(
+            "Error: label '%s' name is not valid- already defined as a "
+            "register name\n",
+            name);
+        return EXIT_FAILURE;
+    }
+
+    return EXIT_SUCCESS;
 }
 
 /**
@@ -88,18 +151,10 @@ static int label_registration(String file_name) {
     FILE *file;
     int exit_code = EXIT_SUCCESS;
     char line[MAX_LINE_LENGTH];
-    char token[MAX_LABEL_LENGTH]; /*holds the label */
-    String this_word;
     int func_bool;
 
     String file_path = get_file_name_with_extension(
         file_name, (String)POST_PROCESS_FILE_EXTENSION);
-    String label_name = (String)malloc(MAX_LABEL_LENGTH);
-
-    if (label_name == NULL) {
-        fprintf(stderr, "Error: Could not allocate memory for label name\n");
-        exit(EXIT_FAILURE);
-    }
 
     file = fopen(file_path, "r");
     if (file == NULL) {
@@ -111,43 +166,18 @@ static int label_registration(String file_name) {
      * Read file line by line
      */
     while (fgets(line, sizeof(line), file)) {
-        /**
-         * TODO - pass in the entire line, not just the first word
-         * Could be external logic
-         */
-        this_word = get_first_word_from_line(line);
-        func_bool = is_label(this_word);
+        func_bool = is_label(trim_string(line));
 
-        /**
-         * If the word is not a label - Checking whether this is a directive
-         * @TODO - Add a function that checks if it is a directive statement
-         */
-        if (func_bool == 0) {
+        if (func_bool == NOT_LABEL) {
             continue;
         }
 
         /**
-         * Extract the name of the label itself (without ':') from the first
-         * word Check if the word if not already declared in the labels list/as
-         * a macro/as an opcode In case the label already exists, we check for
-         * external logic If all the tests come out negative, we will add the
-         * label to the symbol table
+         * TODO - add the label based on it's type
+         * Apply checks in the `add_label` function
+         *
+         * @see {@link is_label_name_allowed}
          */
-        extractToken(token,
-                     this_word); /*Extracting only the characters relevant to
-                                    the label name from the word*/
-        func_bool = label_check_before_add(
-            token); /*Sending the token to the function that checks if the label
-                       name already exists as an external/macro/action*/
-        if (!func_bool) {
-            /**
-             * If the token passes all tests successfully, we will set the token
-             * as the label name and join the symbol table
-             */
-            add_label(token, '0');
-            func_bool = 0;
-            continue;
-        }
 
         /**
          * Handle the case where the label is already declared
@@ -201,18 +231,18 @@ static int label_fill(String file_name) {
  * @deprecated - we can use the {@link label_registration} function to support
  * this logic
  */
-static int fill_symbols_list(String file_name) {
+/* static int fill_symbols_list(String file_name) {
     label_fill(file_name);
 
     instCounter += SYMBOL_START_POINT;
     return FILL_SUCCESS;
-}
+} */
 
 void *handle_labels(String *file_names) {
     int i;
     int is_failed = EXIT_SUCCESS;
     int label_reg_res = EXIT_SUCCESS;
-    int label_fill_res = EXIT_SUCCESS;
+    /* int label_fill_res = EXIT_SUCCESS; */
 
     /**
      * Register labels
@@ -233,13 +263,13 @@ void *handle_labels(String *file_names) {
     /**
      * Adding the address's value in memory
      */
-    for (i = 0; file_names[i] != NULL; i++) {
-        label_fill_res = label_fill(file_names[i]);
+    /*  for (i = 0; file_names[i] != NULL; i++) {
+         label_fill_res = label_fill(file_names[i]);
 
-        if (label_fill_res == NULL) {
-            is_failed = EXIT_FAILURE;
-        }
-    }
+         if (label_fill_res == NULL) {
+             is_failed = EXIT_FAILURE;
+         }
+     } */
 
     if (is_failed) {
         printf("Error: Could not fill the values of the labels\n");
