@@ -150,11 +150,10 @@ static String create_post_processed_file(String file_name) {
 static int macro_registration(String file_name) {
     FILE *file;
     int start_macro = 0;
-    int func_bool;
-
     String last_space;
 
     int exit_code = EXIT_SUCCESS;
+    int exit_code_temp;
 
     String file_path =
         get_file_name_with_extension(file_name, ORIGINAL_FILE_EXTENSION);
@@ -202,17 +201,9 @@ static int macro_registration(String file_name) {
          */
         if (is_close_macro(line)) {
             start_macro = 0;
-
-            /**
-             * Check if macro already exists
-             */
-            func_bool = has_macro(macro_name);
-            if (func_bool) {
-                printf("Error: Macro %s already exists\n", macro_name);
-                exit_code = EXIT_FAILURE;
-            } else {
-                add_macro(macro_name, macro_value);
-            }
+            exit_code_temp = add_macro(macro_name, macro_value);
+            exit_code =
+                exit_code_temp == EXIT_FAILURE ? EXIT_FAILURE : exit_code;
 
             continue;
         }
