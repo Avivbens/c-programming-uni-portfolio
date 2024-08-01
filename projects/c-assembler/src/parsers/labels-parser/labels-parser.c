@@ -46,6 +46,10 @@ static int is_label_name_ok(String name) {
     int i;
     int len = strlen(name);
 
+    if (name[len] != ':') {
+        return 0;
+    }
+
     if (len > MAX_LABEL_LENGTH) {
         return 0;
     }
@@ -69,29 +73,34 @@ static int is_label_name_ok(String name) {
  */
 static LabelType is_label(String line) {
     LabelType label_type;
+    int flag;
     int len = strlen(line);
     String first_word = (String)malloc(len * sizeof(char));
-    int flag;
-
-    if (line[len - 1] != ':') {
-        return NOT_LABEL;
+    if (first_word == NULL) {
+        printf("Error: Could not allocate memory for %s \n", first_word);
+        exit(EXIT_FAILURE);
     }
-
-    /**
-     * Handle basic case for label
-     */
     first_word = get_word(line, 0);
-    label_type = get_label_type(first_word);
-    if (label_type == NOT_LABEL_TYPE) {
-        flag = is_label_name_ok(line);
-        return flag == 0 ? NOT_LABEL : NOT_LABEL_TYPE;
+    int word_len = strlen(first_word);
+
+    if (line[len - 1] != ':' || first_word[word_len] != ':') {
+        return NOT_LABEL;
     }
 
     /**
      * Handle special cases for labels - entry, extern, etc
      */
-    flag = is_label_name_ok(line);
-    return flag == 0 ? NOT_LABEL : label_type;
+    if (first_word[0] == '.') {
+        label_type = get_label_type(first_word);
+        return label_type < 2 ? NOT_LABEL : label_type;
+    }
+    /**
+     * Handle basic case for label
+     */
+    else {
+        flag = is_label_name_ok(first_word);
+        return flag == 0 ? NOT_LABEL : NOT_LABEL_TYPE;
+    }
 }
 
 /**
@@ -152,6 +161,9 @@ static int label_registration(String file_name) {
     int exit_code = EXIT_SUCCESS;
     char line[MAX_LINE_LENGTH];
     int func_bool;
+    int len = strlen(line);
+    String first_word = (String)malloc(len * sizeof(char));
+    String second_word = (String)malloc(len * sizeof(char));
 
     String file_path = get_file_name_with_extension(
         file_name, (String)POST_PROCESS_FILE_EXTENSION);
@@ -168,8 +180,83 @@ static int label_registration(String file_name) {
     while (fgets(line, sizeof(line), file)) {
         func_bool = is_label(trim_string(line));
 
-        if (func_bool == NOT_LABEL) {
-            continue;
+        switch (func_bool) {
+            case NOT_LABEL:
+                continue;
+
+            case NOT_LABEL_TYPE:
+                /** A case where the tested word is an optional name for the
+                 * label. In this case we will examine three options: The next
+                 * word is a directive type(string or data), we will add it to
+                 * the symbol table with the relevant indication. The next word
+                 * is a directive type (external or entry)- we will issue a
+                 * warning message since this structure is not correct The
+                 * following word is not a directive word, we will add the label
+                 * to the symbol table without a prompt indication.
+                 */
+                first_word = get_word(line, 0);
+                if (!is_label_name_allowed(first_word)) {
+                    continue;
+                } else {
+                    /*We will check the next word to know if it is a directive
+                     * type label */
+                    second_word = get_word(line, 1);
+                    if (get_label_type(second_word) == LABEL_EXTERN) {
+                        printf(
+                            "WARNING':A label defined at the beginning of the "
+                            "extern line is invalid\n");
+                        continue;
+                    }
+                    if (get_label_type(second_word) == LABEL_ENTRY) {
+                        printf(
+                            "WARNING':A label defined at the beginning of the "
+                            "entry line is invalid\n");
+                        continue;
+                    }
+                    if (get_label_type(second_word) == LABEL_DATA) {
+                        add_label(first_word, 0, LABEL_DATA);
+                    }
+                    if (get_label_type(second_word) == LABEL_STRING) {
+                        add_label(first_word, 0, LABEL_STRING);
+                    }
+                    /*If the first word is a regular label- without a directive
+                       type */
+                    else if (get_label_type(second_word) == NOT_LABEL_TYPE) {
+                        add_label(first_word, 0, NOT_LABEL_TYPE);
+                    }
+                }
+
+            case LABEL_EXTERN:
+                second_word = get_word(line, 1);
+                if (get_label_type(second_word) == LABEL_EXTERN) {
+                    add_label(first_word, 0, LABEL_EXTERN);
+                }
+                printf(
+                    "WARNING':A label defined at the beginning of the extern "
+                    "line is invalid\n");
+                continue;
+
+            case LABEL_ENTRY:
+                printf(
+                    "WARNING':A label defined at the beginning of the entry "
+                    "line is invalid\n");
+                continue;
+
+            case LABEL_DATA:
+                second_word = get_word(line, 1);
+                if (!is_label_name_allowed(second_word)) {
+                    continue;
+                } else {
+                    add_label(second_word, 0, LABEL_DATA);
+                }
+
+            case LABEL_STRING:
+                second_word = get_word(line, 1);
+                if (!is_label_name_allowed(second_word)) {
+                    continue;
+                } else {
+                    add_label(second_word, 0, LABEL_STRING);
+                }
         }
 
         /**
@@ -178,6 +265,31 @@ static int label_registration(String file_name) {
          *
          * @see {@link is_label_name_allowed}
          */
+        if (func_bool == NOT_LABEL_TYPE) {
+            first_word = get_word(line, 0);
+            if (!is_label_name_allowed(first_word)) {
+                continue;
+            }
+            second_word = get_word(line, 1);
+
+            if (get_label_type(second_word) == LABEL_DATA ||
+                get_label_type(second_word) == LABEL_STRING) {
+                if (!is_label_name_allowed(first_word)) {
+                    continue;
+                }
+            } else if (get_label_type(second_word) == LABEL_ENTRY ||
+                       get_label_type(second_word) == LABEL_EXTERN) {
+                /* WE CAN ADD A WARNING MESSAGE*/
+                continue;
+            } else {
+                is_label_name_allowed(first_word);
+                add_label(first_word, 0, ); /* FIX VALUE!!!!!*/
+            }
+        }
+
+        else if (func_bool == LABEL_ENTRY) {
+            add_label(first_word, 0, LABEL_ENTRY);
+        }
 
         /**
          * Handle the case where the label is already declared
@@ -264,11 +376,11 @@ void *handle_labels(String *file_names) {
      * Adding the address's value in memory
      */
     /*  for (i = 0; file_names[i] != NULL; i++) {
-         label_fill_res = label_fill(file_names[i]);
+        label_fill_res = label_fill(file_names[i]);
 
-         if (label_fill_res == NULL) {
-             is_failed = EXIT_FAILURE;
-         }
+        if (label_fill_res == NULL) {
+            is_failed = EXIT_FAILURE;
+        }
      } */
 
     if (is_failed) {

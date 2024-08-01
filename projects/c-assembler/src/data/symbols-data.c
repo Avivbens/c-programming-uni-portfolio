@@ -11,8 +11,7 @@ static void print_label(void* data) {
 
     printf("Name: %s\n", label->name);
     printf("Value: %s\n", label->value);
-    printf("Exists: %d\n", label->exists);
-    printf("ExistsExtern: %d\n", label->existsExtern);
+    printf("Exists: %d\n", label->type);
 }
 
 /**
@@ -36,7 +35,7 @@ LinkedList* get_labels_list(void) {
  *
  * @returns int - The result of the operation
  */
-int add_label(String name, Label* value) {
+int add_label(String name, Label* value, int type) {
     int value_size = sizeof(Label);
     LinkedList* symbols = get_labels_list();
 
