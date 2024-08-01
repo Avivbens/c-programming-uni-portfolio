@@ -35,15 +35,25 @@ LinkedList* get_labels_list(void) {
  *
  * @returns int - The result of the operation
  */
-int add_label(String name, Label* value, int type) {
+int add_label(String name, Label* value) {
     int value_size = sizeof(Label);
     LinkedList* symbols = get_labels_list();
 
-    if (!has_list(symbols, name)) {
+    if (has_list(symbols, name)) {
+        Label* existing_label = (Label*)get_list(symbols, name);
+        if (existing_label != NULL) {
+            /*Check if the existing label is of type entry or extern*/
+            if (existing_label->type == LABEL_ENTRY ||
+                existing_label->type == LABEL_EXTERN) {
+                printf(
+                    "Error: label %s already defined as %s\n", name,
+                    existing_label->type == LABEL_ENTRY ? "entry" : "extern");
+                return EXIT_FAILURE;
+            }
+        }
+        printf("Error: label %s already defined\n", name);
+        return EXIT_FAILURE;
     }
-
-    printf("Error: label %s already defined\n", name);
-    return EXIT_FAILURE;
 
     insert_list(symbols, name, value, value_size);
 
