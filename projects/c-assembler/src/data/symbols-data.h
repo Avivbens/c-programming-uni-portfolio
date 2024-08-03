@@ -3,10 +3,22 @@
 #include "../utils/list/list.h"
 #include "../utils/string/string.h"
 
+typedef enum {
+    LABEL_VIOLATION = -1,
+    NOT_LABEL,
+    NOT_LABEL_TYPE,
+    LABEL_EXTERN,
+    LABEL_ENTRY,
+    LABEL_DATA,
+    LABEL_STRING
+} LabelType;
+
 typedef struct Label {
-    char *name;
-    char *value;
-    LabelType type; /* entry/extern/data/string */
+    String name;
+    int memory_address;
+    int is_defined;
+    int has_extern;
+    int has_entry;
 } Label;
 
 #define FILL_SUCCESS 1
@@ -16,16 +28,7 @@ typedef struct Label {
 #define LABEL_STRING_PREFIX ".string"
 #define LABEL_ENTRY_PREFIX ".entry"
 
-typedef enum {
-    NOT_LABEL,
-    NOT_LABEL_TYPE,
-    LABEL_EXTERN,
-    LABEL_ENTRY,
-    LABEL_DATA,
-    LABEL_STRING
-} LabelType;
-
-int add_label(String name, Label *value, int type);
+int add_label(String name, LabelType type, int memory_address);
 Label *get_label(String name);
 int has_label(String name);
 LinkedList *get_labels_list(void);
