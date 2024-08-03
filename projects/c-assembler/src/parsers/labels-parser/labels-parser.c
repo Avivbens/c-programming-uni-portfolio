@@ -46,7 +46,7 @@ static int is_label_name_ok(String name) {
     int i;
     int len = strlen(name);
 
-    if (name[len] != ':') {
+    if (name[len - 1] != ':') {
         return 0;
     }
 
@@ -73,15 +73,18 @@ static int is_label_name_ok(String name) {
  */
 static LabelType is_label(String line) {
     LabelType label_type;
-    int flag;
     int len = strlen(line);
+    int word_len;
+    int flag;
+
     String first_word = (String)malloc(len * sizeof(char));
     if (first_word == NULL) {
         printf("Error: Could not allocate memory for %s \n", first_word);
         exit(EXIT_FAILURE);
     }
+
     first_word = get_word(line, 0);
-    int word_len = strlen(first_word);
+    word_len = strlen(first_word);
 
     if (line[len - 1] != ':' || first_word[word_len] != ':') {
         return NOT_LABEL;
@@ -162,6 +165,7 @@ static int label_registration(String file_name) {
     char line[MAX_LINE_LENGTH];
     int func_bool;
     int len = strlen(line);
+
     String first_word = (String)malloc(len * sizeof(char));
     String second_word = (String)malloc(len * sizeof(char));
 
