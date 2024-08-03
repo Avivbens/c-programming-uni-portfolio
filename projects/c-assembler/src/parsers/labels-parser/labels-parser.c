@@ -15,20 +15,23 @@
  * 3 - if the label is a data label
  * 4 - if the label is a string label
  */
-static LabelType get_label_type(String str) {
-    if (strcmp(str, LABEL_EXTERN_PREFIX)) {
+static LabelType get_label_type(String line) {
+    String second_word;
+
+    if (starts_with(line, (String)LABEL_EXTERN_PREFIX)) {
         return LABEL_EXTERN;
     }
 
-    if (strcmp(str, LABEL_ENTRY_PREFIX)) {
+    if (starts_with(line, (String)LABEL_ENTRY_PREFIX)) {
         return LABEL_ENTRY;
     }
 
-    if (strcmp(str, LABEL_DATA_PREFIX)) {
+    second_word = get_word(line, 1);
+    if (strcmp(second_word, LABEL_DATA_PREFIX)) {
         return LABEL_DATA;
     }
 
-    if (strcmp(str, LABEL_STRING_PREFIX)) {
+    if (strcmp(second_word, LABEL_STRING_PREFIX)) {
         return LABEL_STRING;
     }
 
@@ -45,10 +48,6 @@ static LabelType get_label_type(String str) {
 static int is_label_name_ok(String name) {
     int i;
     int len = strlen(name);
-
-    if (name[len - 1] != ':') {
-        return 0;
-    }
 
     if (len > MAX_LABEL_LENGTH) {
         return 0;
