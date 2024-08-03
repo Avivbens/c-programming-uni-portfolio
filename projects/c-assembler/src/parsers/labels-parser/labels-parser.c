@@ -165,9 +165,9 @@ static int label_registration(String file_name) {
     FILE *file;
     int exit_code = EXIT_SUCCESS;
     char line[MAX_LINE_LENGTH];
+    int line_number = 0;
 
-    String first_word;
-    String second_word;
+    String word;
 
     LabelType label_type;
 
@@ -184,11 +184,31 @@ static int label_registration(String file_name) {
      * Read file line by line
      */
     while (fgets(line, sizeof(line), file)) {
+        line_number++;
         label_type = is_label(trim_string(line));
+
+        if (label_type == LABEL_STRING || label_type == LABEL_DATA ||
+            label_type == NOT_LABEL_TYPE) {
+            word = get_word(line, 1);
+            if (strcmp(word, LABEL_EXTERN_PREFIX) == 0) {
+                printf(
+                    "WARNING: A label defined at the beginning of the "
+                    "extern line is invalid\n");
+                continue;
+            }
+
+            if (strcmp(word, LABEL_ENTRY_PREFIX) == 0) {
+                printf(
+                    "WARNING: A label defined at the beginning of the "
+                    "entry line is invalid\n");
+                continue;
+            }
+        }
 
         switch ((int)label_type) {
             case LABEL_VIOLATION:
-                printf("Error: violation with labels system!\n");
+                printf("line: %d,Error: violation with labels system!\n",
+                       line_number);
                 exit_code = EXIT_FAILURE;
                 continue;
 
@@ -196,25 +216,6 @@ static int label_registration(String file_name) {
                 continue;
 
             case NOT_LABEL_TYPE:
-
-                /**
-                 * TODO - apply this logic for each of the label types
-                 */
-                second_word = get_word(line, 1);
-                if (strcmp(second_word, LABEL_EXTERN_PREFIX) == 0) {
-                    printf(
-                        "WARNING':A label defined at the beginning of the "
-                        "extern line is invalid\n");
-                    continue;
-                }
-
-                if (strcmp(second_word, LABEL_ENTRY_PREFIX) == 0) {
-                    printf(
-                        "WARNING':A label defined at the beginning of the "
-                        "entry line is invalid\n");
-                    continue;
-                }
-
                 /**
                  * TODO - implement
                  */
@@ -267,19 +268,5 @@ void *handle_labels(String *file_names) {
         exit(EXIT_FAILURE);
     }
 
-    /**
-     * Adding the address's value in memory
-     */
-    /*  for (i = 0; file_names[i] != NULL; i++) {
-        label_fill_res = label_fill(file_names[i]);
-
-        if (label_fill_res == NULL) {
-            is_failed = EXIT_FAILURE;
-        }
-     } */
-
-    if (is_failed) {
-        printf("Error: Could not fill the values of the labels\n");
-        exit(EXIT_FAILURE);
-    }
+    return NULL;
 }
