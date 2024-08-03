@@ -166,3 +166,15 @@ String get_word(String line, int word_number) {
     word = get_first_word_from_line(line);
     return word;
 }
+
+/**
+ * Check if a string starts with a given prefix
+ *
+ * @param str The string to check
+ * @param prefix The prefix to check for
+ *
+ * @returns 1 if the string starts with the prefix, 0 otherwise
+ */
+int starts_with(String str, String prefix) {
+    return strncmp(str, prefix, strlen(prefix)) == 0;
+}
