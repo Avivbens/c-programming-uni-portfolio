@@ -178,3 +178,14 @@ String get_word(String line, int word_number) {
 int starts_with(String str, String prefix) {
     return strncmp(str, prefix, strlen(prefix)) == 0;
 }
+
+int ends_with(String str, String suffix) {
+    int str_len = strlen(str);
+    int suffix_len = strlen(suffix);
+
+    if (suffix_len > str_len) {
+        return 0;
+    }
+
+    return strncmp(str + str_len - suffix_len, suffix, suffix_len) == 0;
+}
