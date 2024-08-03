@@ -5,6 +5,8 @@
 /**
  * Check if the given token is a valid command
  *
+ * TODO - full implementation with whitelist
+ *
  * @param token The token to check
  *
  * @returns 1 if the token is a command, 0 otherwise
