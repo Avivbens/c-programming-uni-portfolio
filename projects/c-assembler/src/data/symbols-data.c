@@ -10,8 +10,11 @@ static void print_label(void* data) {
     Label* label = (Label*)data;
 
     printf("Name: %s\n", label->name);
-    printf("Value: %s\n", label->value);
-    printf("Exists: %d\n", label->type);
+    printf("Is Defined: %d\n", label->is_defined);
+    printf("Memory address: %d\n", label->memory_address);
+
+    printf("Has Entry: %d\n", label->has_entry);
+    printf("Has Extern: %d\n", label->has_extern);
 }
 
 /**
@@ -33,30 +36,65 @@ LinkedList* get_labels_list(void) {
  * @param name The label name
  * @param value A pointer to a label value
  *
- * @returns int - The result of the operation
+ * @returns EXIT_SUCCESS if the label was added successfully, EXIT_FAILURE
+ * otherwise
  */
-int add_label(String name, Label* value) {
+int add_label(String name, LabelType type, int memory_address) {
     int value_size = sizeof(Label);
-    LinkedList* symbols = get_labels_list();
+    LinkedList* labels = get_labels_list();
+    Label* new_label;
+    Label* existing_label;
+    int should_not_define = type == LABEL_EXTERN || type == LABEL_ENTRY;
 
-    if (has_list(symbols, name)) {
-        Label* existing_label = (Label*)get_list(symbols, name);
-        if (existing_label != NULL) {
-            /*Check if the existing label is of type entry or extern*/
-            if (existing_label->type == LABEL_ENTRY ||
-                existing_label->type == LABEL_EXTERN) {
-                printf(
-                    "Error: label %s already defined as %s\n", name,
-                    existing_label->type == LABEL_ENTRY ? "entry" : "extern");
-                return EXIT_FAILURE;
-            }
+    /**
+     * Register a new label in the symbols table
+     */
+    if (!has_list(labels, name)) {
+        new_label = (Label*)malloc(value_size);
+        if (new_label == NULL) {
+            printf("Error: failed to allocate memory for label %s\n", name);
+            return EXIT_FAILURE;
         }
+
+        new_label->name = name;
+        new_label->memory_address = should_not_define ? 0 : memory_address;
+        new_label->is_defined = should_not_define ? 0 : 1;
+
+        new_label->has_extern = type == LABEL_EXTERN ? 1 : 0;
+        new_label->has_entry = type == LABEL_ENTRY ? 1 : 0;
+
+        insert_list(labels, name, new_label, value_size);
+        return EXIT_SUCCESS;
+    }
+
+    existing_label = (Label*)get_list(labels, name);
+
+    /**
+     * No need to change data if the label is extern or entry
+     */
+    if (type == LABEL_EXTERN) {
+        existing_label->has_extern = 1;
+        return EXIT_SUCCESS;
+    }
+
+    if (type == LABEL_EXTERN) {
+        existing_label->has_entry = 1;
+        return EXIT_SUCCESS;
+    }
+
+    /**
+     * Prevent redefining a label
+     */
+    if (existing_label->is_defined == 1) {
         printf("Error: label %s already defined\n", name);
         return EXIT_FAILURE;
     }
 
-    insert_list(symbols, name, value, value_size);
-
+    /**
+     * Update the label if it already exists
+     */
+    existing_label->is_defined = 1;
+    existing_label->memory_address = memory_address;
     return EXIT_SUCCESS;
 }
 
