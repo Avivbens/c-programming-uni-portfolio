@@ -2,8 +2,8 @@
 
 #include "../string/string.h"
 
-#ifndef SET_H
-#define SET_H
+#ifndef LIST_H
+#define LIST_H
 
 #define TABLE_SIZE 100
 
@@ -21,7 +21,6 @@ typedef struct LinkedList {
 } LinkedList;
 
 typedef void (*ValuePrinter)(void *);
-#endif
 
 LinkedList *create_list(void);
 
@@ -32,3 +31,5 @@ int has_list(LinkedList *linkedList, String key);
 int remove_list(LinkedList *linkedList, String key);
 void print_list(LinkedList *linkedList, ValuePrinter printer);
 void free_linkedList(LinkedList *linkedList);
+
+#endif

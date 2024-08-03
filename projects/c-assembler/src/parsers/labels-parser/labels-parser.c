@@ -219,27 +219,32 @@ static int label_registration(String file_name) {
                 /**
                  * TODO - implement
                  */
+                continue;
 
             case LABEL_EXTERN:
 
                 /**
                  * TODO - implement
                  */
+                continue;
 
             case LABEL_ENTRY:
                 /**
                  * TODO - implement
                  */
+                continue;
 
             case LABEL_DATA:
                 /**
                  * TODO - implement
                  */
+                continue;
 
             case LABEL_STRING:
                 /**
                  * TODO - implement
                  */
+                continue;
         }
     }
 

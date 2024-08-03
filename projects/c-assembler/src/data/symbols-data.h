@@ -3,6 +3,9 @@
 #include "../utils/list/list.h"
 #include "../utils/string/string.h"
 
+#ifndef SYMBOLS_DATA_H
+#define SYMBOLS_DATA_H
+
 typedef enum {
     LABEL_VIOLATION = -1,
     NOT_LABEL,
@@ -32,3 +35,5 @@ int add_label(String name, LabelType type, int memory_address);
 Label *get_label(String name);
 int has_label(String name);
 LinkedList *get_labels_list(void);
+
+#endif
