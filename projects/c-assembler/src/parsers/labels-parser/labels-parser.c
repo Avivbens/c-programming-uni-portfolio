@@ -6,6 +6,36 @@
 #include <string.h>
 
 /**
+ * The Instruction Counter begins at 100 and increases by the number of memory
+ * cells each instruction uses.
+ *
+ * This indicates the next available memory cell.
+ */
+static int get_instruction_counter(int increment) {
+    static int instruction_counter = SYMBOL_START_POINT;
+    int res = instruction_counter;
+
+    instruction_counter += increment;
+    return res;
+}
+
+/**
+ * The Data Counter serves a similar purpose as the Instruction Counter but is
+ * specifically for data.
+ *
+ * For safety reasons, they are kept separate.
+ *
+ * TODO - keep them separate
+ */
+static int get_data_counter(int increment) {
+    static int data_counter = SYMBOL_START_POINT + 100;
+    int res = data_counter;
+
+    data_counter += increment;
+    return res;
+}
+
+/**
  * @param line - the line to check
  *
  * @returns:
@@ -207,7 +237,7 @@ static int label_registration(String file_name) {
 
         switch ((int)label_type) {
             case LABEL_VIOLATION:
-                printf("line: %d,Error: violation with labels system!\n",
+                printf("line: %d, Error: violation with labels system!\n",
                        line_number);
                 exit_code = EXIT_FAILURE;
                 continue;
