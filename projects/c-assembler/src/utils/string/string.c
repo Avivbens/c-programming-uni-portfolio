@@ -179,6 +179,14 @@ int starts_with(String str, String prefix) {
     return strncmp(str, prefix, strlen(prefix)) == 0;
 }
 
+/**
+ * Check if a string ends with a given suffix
+ *
+ * @param str The string to check
+ * @param suffix The suffix to check for
+ *
+ * @returns 1 if the string ends with the suffix, 0 otherwise
+ */
 int ends_with(String str, String suffix) {
     int str_len = strlen(str);
     int suffix_len = strlen(suffix);
