@@ -77,7 +77,7 @@ int add_label(String name, LabelType type, int memory_address) {
         return EXIT_SUCCESS;
     }
 
-    if (type == LABEL_EXTERN) {
+    if (type == LABEL_ENTRY) {
         existing_label->has_entry = 1;
         return EXIT_SUCCESS;
     }
