@@ -93,6 +93,93 @@ static int is_label_name_ok(String name) {
 }
 
 /**
+ * @param str - The string we want to check
+ * @returns 1 if the string is a valid content of a string, 0 otherwise
+ */
+
+static int is_valid_string(String str) {
+    int i;
+    int len = strlen(str);
+
+    for (i = 0; i < len - 1; i++) {
+        if (!isalnum(str[i])) {
+            return 0;
+        }
+    }
+
+    return 1;
+}
+
+/**
+ * @param str - The string we want to check
+ * @returns 1 if the string is a valid content of a string, 0 otherwise
+ */
+
+static int count_numbers(char *str, int start_index) {
+    int count;
+    int in_number = 0;
+    int comma_found = 0;
+
+    /* Advance the pointer to the start index*/
+
+    str += start_index;
+
+    while (*str) {
+        if (isspace((unsigned char)*str)) {
+            str++;
+            continue;
+        }
+
+        if (*str == ',') {
+            /*Check if there is no sequence of commas */
+            if (in_number == 1) {
+                in_number = 0;
+                comma_found = 1;
+                str++;
+                continue;
+            } else {
+                printf(
+                    "Error: str '%s' is invalid string, there is a sequence of "
+                    "two characters of type ','\n",
+                    str);
+                return EXIT_FAILURE;
+            }
+        }
+    }
+    if (isdigit((unsigned char)*str) || *str == '+' || *str == '-') {
+        if (!in_number) {
+            const char *start = str;
+            while (isdigit((unsigned char)*str) || *str == '+' || *str == '-') {
+                str++;
+                /*Invalid character in number*/
+                if (*str != '\0' && *str != ',' &&
+                    !isspace((unsigned char)*str)) {
+                    printf("Error: invalid character inside the number '%s'\n",
+                           str);
+                    return -1;
+                }
+                count++;
+                in_number = 1;
+            }
+            comma_found = 0;
+        } else {
+            /* Invalid character in the string*/
+            printf("Error: invalid character inside the string '%s'\n", str);
+            return -1;
+        }
+    }
+    /* Check for trailing comma*/
+    if (comma_found) {
+        printf(
+            "Error: str '%s' is invalid string, there is a sequence of two "
+            "characters of type ','\n",
+            str);
+        return -1;
+    }
+    return count;
+}
+
+/**
  * @param name - the name of the potential label
  *
  * @returns 1 if the label is allowed, 0 otherwise
@@ -198,6 +285,7 @@ static int label_registration(String file_name) {
     int line_number = 0;
 
     String word;
+    int helper;
 
     LabelType label_type;
 
@@ -246,34 +334,124 @@ static int label_registration(String file_name) {
                 continue;
 
             case NOT_LABEL_TYPE:
-                /**
-                 * TODO - implement
-                 */
+                word = get_word(line, 1);
+                if (is_command(word) == 0) {
+                    printf(
+                        "Error: %s Not an opcode, %s label can not be added to "
+                        "symbols table\n",
+                        word, get_word(line, 0));
+                    exit_code = EXIT_FAILURE;
+                }
+                helper = count_operands(line, 3);
+                if (helper == -1) {
+                    printf(
+                        "Error: Label %s can't be added to symbols table, "
+                        "invalid operands\n",
+                        word);
+                    exit_code = EXIT_FAILURE;
+                    continue;
+                } else {
+                    helper = validate_opcode_operand(word, helper);
+                    if (helper == -1) {
+                        printf("Error: Opcode %s can not accept %s operands \n",
+                               word, helper);
+                        exit_code = EXIT_FAILURE;
+                        continue;
+                    } else {
+                        word = replace_substring(strdup(get_word(line, 0)),
+                                                 (String) ":", (String) "");
+                        add_label(word, NOT_LABEL_TYPE, IC);
+                        if (add_label == 1) {
+                            printf(
+                                "Error: Label %s can't be added to symbols "
+                                "table\n",
+                                word);
+                            exit_code = EXIT_FAILURE;
+                            continue;
+                        }
+                        /*TODO- need to check with AVIV, page 33 in the book.
+                         * for now we will add the count*/
+                        get_instruction_counter(helper);
+                    }
+                }
                 continue;
 
             case LABEL_EXTERN:
-
-                /**
-                 * TODO - implement
-                 */
+                word = replace_substring(strdup(get_word(line, 1)),
+                                         (String) ":", (String) "");
+                add_label(word, LABEL_EXTERN, IC);
+                if (add_label == 1) {
+                    printf("Error: Label %s can't be added to symbols table\n",
+                           word);
+                    exit_code = EXIT_FAILURE;
+                    continue;
+                }
+                /*TODO- need to check with AVIV if it should be 1 or 0*/
+                get_instruction_counter(1);
                 continue;
 
             case LABEL_ENTRY:
-                /**
-                 * TODO - implement
-                 */
+                word = replace_substring(strdup(get_word(line, 1)),
+                                         (String) ":", (String) "");
+                add_label(word, LABEL_EXTERN, IC);
+                if (add_label == 1) {
+                    printf("Error: Label %s can't be added to symbols table\n",
+                           word);
+                    exit_code = EXIT_FAILURE;
+                    continue;
+                }
+
                 continue;
 
             case LABEL_DATA:
-                /**
-                 * TODO - implement
-                 */
+                word = get_word(line, 3);
+                helper = count_numbers(line, 3);
+                if (helper == -1) {
+                    printf(
+                        "Error: Invalid string %s ,label %s can't be added to "
+                        "symbols table\n",
+                        word, get_word(line, 0));
+                    exit_code = EXIT_FAILURE;
+                }
+                word = replace_substring(strdup(get_word(line, 0)),
+                                         (String) ":", (String) "");
+                add_label(word, LABEL_STRING, DC);
+                if (add_label == 1) {
+                    printf("Error: Label %s can't be added to symbols table\n",
+                           word);
+                    exit_code = EXIT_FAILURE;
+                    continue;
+                }
+                get_data_counter(helper);
                 continue;
 
             case LABEL_STRING:
-                /**
-                 * TODO - implement
-                 */
+                /*Checks if the string that appears after the label is correct
+                 * before adding the label*/
+                word = get_word(line, 3);
+                word = remove_quotation(word);
+                is_valid_string(word);
+                if (is_valid_string == 0) {
+                    printf(
+                        "Error: Invalid string %s ,label %s can't be added to "
+                        "symbols table\n",
+                        word, get_word(line, 0));
+                    exit_code = EXIT_FAILURE;
+                    continue;
+                }
+                /*If the string is correct, we will add the label to the symbol
+                 * table*/
+                word = replace_substring(strdup(get_word(line, 0)),
+                                         (String) ":", (String) "");
+                add_label(word, LABEL_STRING, DC);
+                if (add_label == 1) {
+                    printf("Error: Label %s can't be added to symbols table\n",
+                           word);
+                    exit_code = EXIT_FAILURE;
+                    continue;
+                }
+                /*increment dc according to word length + '0' at the end */
+                get_data_counter(strlen(get_word(line, 3)) - 1);
                 continue;
         }
     }
