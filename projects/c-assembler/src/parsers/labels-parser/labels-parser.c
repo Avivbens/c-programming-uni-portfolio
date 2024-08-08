@@ -93,10 +93,10 @@ static int is_label_name_ok(String name) {
 }
 
 /**
+ * Validate that a string contains only valid characters for a string
+ *
  * @param str - The string we want to check
  * @returns 1 if the string is a valid content of a string, 0 otherwise
- *
- * TODO - WHAT IS THAT?!
  */
 static int is_valid_string(String str) {
     int i;
@@ -109,78 +109,6 @@ static int is_valid_string(String str) {
     }
 
     return 1;
-}
-
-/**
- * @param str - The string we want to check
- * @returns 1 if the string is a valid content of a string, 0 otherwise
- *
- * @deprecated
- * TODO - yeah, no chance
- * Please explain why we need this function, and we will rewrite it
- */
-static int count_numbers(char *str, int start_index) {
-    int count;
-    int in_number = 0;
-    int comma_found = 0;
-
-    /* Advance the pointer to the start index*/
-
-    str += start_index;
-
-    while (*str) {
-        if (isspace((unsigned char)*str)) {
-            str++;
-            continue;
-        }
-
-        if (*str == ',') {
-            /*Check if there is no sequence of commas */
-            if (in_number == 1) {
-                in_number = 0;
-                comma_found = 1;
-                str++;
-                continue;
-            } else {
-                printf(
-                    "Error: str '%s' is invalid string, there is a sequence of "
-                    "two characters of type ','\n",
-                    str);
-                return EXIT_FAILURE;
-            }
-        }
-    }
-    if (isdigit((unsigned char)*str) || *str == '+' || *str == '-') {
-        if (!in_number) {
-            const char *start = str;
-            while (isdigit((unsigned char)*str) || *str == '+' || *str == '-') {
-                str++;
-                /*Invalid character in number*/
-                if (*str != '\0' && *str != ',' &&
-                    !isspace((unsigned char)*str)) {
-                    printf("Error: invalid character inside the number '%s'\n",
-                           str);
-                    return -1;
-                }
-                count++;
-                in_number = 1;
-            }
-            comma_found = 0;
-        } else {
-            /* Invalid character in the string*/
-            printf("Error: invalid character inside the string '%s'\n", str);
-            return -1;
-        }
-    }
-    /* Check for trailing comma*/
-    if (comma_found) {
-        printf(
-            "Error: str '%s' is invalid string, there is a sequence of two "
-            "characters of type ','\n",
-            str);
-        return -1;
-    }
-    return count;
 }
 
 /**
@@ -534,6 +462,9 @@ void *handle_labels(String *file_names) {
         label_reg_res = label_registration(file_names[i]);
 
         if (label_reg_res == EXIT_FAILURE) {
+            printf("Error: Could not register labels in file: %s \n",
+                   file_names[i]);
+
             is_failed = EXIT_FAILURE;
         }
     }
