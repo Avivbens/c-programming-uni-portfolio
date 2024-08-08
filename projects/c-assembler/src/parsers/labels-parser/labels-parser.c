@@ -201,6 +201,49 @@ static LabelType is_label(String line) {
     return label_type;
 }
 
+static int update_exit_code(int exit_code, int new_code) {
+    if (exit_code == EXIT_FAILURE) {
+        return EXIT_FAILURE;
+    }
+
+    return new_code;
+}
+
+static int handle_no_type_label_reg(String line, int line_number) {
+    String opcode = get_word(line, 1);
+    String rest = substring_words(line, 2);
+
+    String *operands;
+    int operands_amount = 0;
+    OpcodeCheck res;
+
+    rest = trim_string(rest);
+
+    operands = split_string(rest, (String) ",");
+    operands_amount = get_array_length(operands, sizeof(String));
+
+    res = validate_opcode_operand(opcode, operands_amount);
+
+    if (res == NOT_EXISTS) {
+        printf("line: %d, Error: Opcode %s not exists! \n", line_number,
+               opcode);
+
+        return EXIT_FAILURE;
+    }
+
+    if (res == INVALID_OPERANDS) {
+        printf("line: %d, Error: Opcode %s can not accept %d operands \n",
+               line_number, opcode, operands_amount);
+
+        return EXIT_FAILURE;
+    }
+
+    /**
+     * TODO - register to the symbol table
+     */
+    return EXIT_SUCCESS;
+}
+
 /**
  * First iteration over a file, Locating the labels and entering the names in
  * the list. At this stage we will initialize the values ​​of all the
@@ -215,11 +258,10 @@ static int label_registration(String file_name) {
     int exit_code = EXIT_SUCCESS;
     char line[MAX_LINE_LENGTH];
     int line_number = 0;
+    LabelType label_type;
 
     String word;
-    int helper;
-
-    LabelType label_type;
+    int res;
 
     String file_path = get_file_name_with_extension(
         file_name, (String)POST_PROCESS_FILE_EXTENSION);
@@ -242,24 +284,21 @@ static int label_registration(String file_name) {
             word = get_word(line, 1);
             if (strcmp(word, LABEL_EXTERN_PREFIX) == 0) {
                 printf(
-                    "WARNING: A label defined at the beginning of the "
-                    "extern line is invalid\n");
+                    "line: %d, WARNING: A label defined at the beginning of "
+                    "the extern line is invalid\n ",
+                    line_number);
                 continue;
             }
 
             if (strcmp(word, LABEL_ENTRY_PREFIX) == 0) {
                 printf(
-                    "WARNING: A label defined at the beginning of the "
-                    "entry line is invalid\n");
+                    "line: %d, WARNING: A label defined at the beginning of "
+                    "the entry line is invalid\n",
+                    line_number);
                 continue;
             }
         }
 
-        /**
-         * ------------------------------
-         * TODO - from here to the bottom - we need a full refactor
-         * ------------------------------
-         */
         switch ((int)label_type) {
             case LABEL_VIOLATION:
                 printf("line: %d, Error: violation with labels system!\n",
@@ -271,177 +310,32 @@ static int label_registration(String file_name) {
                 continue;
 
             case NOT_LABEL_TYPE:
-                word = get_word(line, 1);
-                if (is_command(word) == 0) {
-                    printf(
-                        "Error: %s Not an opcode, %s label can not be added to "
-                        "symbols table\n",
-                        word, get_word(line, 0));
-                    exit_code = EXIT_FAILURE;
-                }
-                helper = count_operands(line, 2);
-                if (helper == -1) {
-                    printf(
-                        "Error: Label %s can't be added to symbols table, "
-                        "invalid operands\n",
-                        word);
-                    exit_code = EXIT_FAILURE;
-                    continue;
-                } else {
-                    helper = validate_opcode_operand(word, helper);
-                    if (helper == -1) {
-                        printf("Error: Opcode %s can not accept %s operands \n",
-                               word, helper);
-                        exit_code = EXIT_FAILURE;
-                        continue;
-                    } else {
-                        word = replace_substring(strdup(get_word(line, 0)),
-                                                 (String) ":", (String) "");
-                        add_label(word, NOT_LABEL_TYPE, IC);
-                        if (add_label == 1) {
-                            printf(
-                                "Error: Label %s can't be added to symbols "
-                                "table\n",
-                                word);
-                            exit_code = EXIT_FAILURE;
-                            continue;
-                        }
-                        /*Add the count + 1 for the opcode*/
-                        get_instruction_counter(helper + 1);
-                    }
-                }
+                res = handle_no_type_label_reg(line, line_number);
+                exit_code = update_exit_code(exit_code, res);
                 continue;
 
+                /**
+                 * TODO - handle externs
+                 */
             case LABEL_EXTERN:
-                word = replace_substring(strdup(get_word(line, 1)),
-                                         (String) ":", (String) "");
-                add_label(word, LABEL_EXTERN, IC);
-                if (add_label == 1) {
-                    printf("Error: Label %s can't be added to symbols table\n",
-                           word);
-                    exit_code = EXIT_FAILURE;
-                    continue;
-                }
                 continue;
 
+                /**
+                 * TODO - handle entry
+                 */
             case LABEL_ENTRY:
-                /* Read the next line */
-                if (fgets(line, sizeof(line), file)) {
-                    /* Trim the line*/
-                    char *trimmed_line = trim_string(line);
-
-                    /* Check if the line is empty*/
-                    if (strlen(trimmed_line) == 0) {
-                        printf(
-                            "Error: The line following the ENTRY label is "
-                            "empty.\n");
-                        exit_code = EXIT_FAILURE;
-                    } else {
-                        /* Validate the structure of the next line- same process
-                         * as NOT_LABEL_TYPE */
-                        word = get_word(line, 1);
-                        if (is_command(word) == 0) {
-                            printf(
-                                "Error: %s Not an opcode, %s label can not be "
-                                "added to "
-                                "symbols table\n",
-                                word, get_word(line, 0));
-                            exit_code = EXIT_FAILURE;
-                        }
-                        helper = count_operands(line, 2);
-                        if (helper == -1) {
-                            printf(
-                                "Error: Label %s can't be added to symbols "
-                                "table, invalid operands\n",
-                                word);
-                            exit_code = EXIT_FAILURE;
-                            continue;
-                        } else {
-                            helper = validate_opcode_operand(word, helper);
-                            if (helper == -1) {
-                                printf(
-                                    "Error: Opcode %s can not accept %s "
-                                    "operands \n",
-                                    word, helper);
-                                exit_code = EXIT_FAILURE;
-                                continue;
-                            } else {
-                                word = replace_substring(
-                                    strdup(get_word(line, 0)), (String) ":",
-                                    (String) "");
-                                add_label(word, NOT_LABEL_TYPE, IC);
-                                if (add_label == 1) {
-                                    printf(
-                                        "Error: Label %s can't be added to "
-                                        "symbols table\n",
-                                        word);
-                                    exit_code = EXIT_FAILURE;
-                                    continue;
-                                }
-                                /*Add the count + 1 for the opcode*/
-                                get_instruction_counter(helper + 1);
-                            }
-                        }
-                    }
-                    continue;
-                }
-
-            case LABEL_DATA:
-                word = get_word(line, 3);
-                helper = count_numbers(line, 3);
-                if (helper == -1) {
-                    printf(
-                        "Error: Invalid string %s ,label %s can't "
-                        "be added to "
-                        "symbols table\n",
-                        word, get_word(line, 0));
-                    exit_code = EXIT_FAILURE;
-                }
-                word = replace_substring(strdup(get_word(line, 0)),
-                                         (String) ":", (String) "");
-                add_label(word, LABEL_STRING, DC);
-                if (add_label == 1) {
-                    printf(
-                        "Error: Label %s can't be added to symbols "
-                        "table\n",
-                        word);
-                    exit_code = EXIT_FAILURE;
-                    continue;
-                }
-                get_data_counter(helper);
                 continue;
 
+                /**
+                 * TODO - handle data
+                 */
+            case LABEL_DATA:
+                continue;
+
+                /**
+                 * TODO - handle string
+                 */
             case LABEL_STRING:
-                /*Checks if the string that appears after the label
-                 * is correct before adding the label*/
-                word = get_word(line, 3);
-                word = remove_quotation(word);
-                is_valid_string(word);
-                if (is_valid_string == 0) {
-                    printf(
-                        "Error: Invalid string %s ,label %s can't "
-                        "be added to "
-                        "symbols table\n",
-                        word, get_word(line, 0));
-                    exit_code = EXIT_FAILURE;
-                    continue;
-                }
-                /*If the string is correct, we will add the label to
-                 * the symbol table*/
-                word = replace_substring(strdup(get_word(line, 0)),
-                                         (String) ":", (String) "");
-                add_label(word, LABEL_STRING, DC);
-                if (add_label == 1) {
-                    printf(
-                        "Error: Label %s can't be added to symbols "
-                        "table\n",
-                        word);
-                    exit_code = EXIT_FAILURE;
-                    continue;
-                }
-                /*increment dc according to word length + '0' at the
-                 * end */
-                get_data_counter(strlen(get_word(line, 3)) - 1);
                 continue;
         }
     }

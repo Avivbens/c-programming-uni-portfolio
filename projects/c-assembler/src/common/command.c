@@ -14,7 +14,7 @@
  * @throw EXIT_FAILURE if the opcode does not define amount of operands
  */
 static int get_operands_number_per_opcode(String word) {
-    int opcode_index = is_command(word);
+    int opcode_index = is_command(trim_string(word));
 
     /**
      * Not a command
@@ -71,21 +71,21 @@ int is_command(String word) {
  * @param word The opcode to validate
  * @param operand_count The amount of operands the opcode has
  *
- * @returns 1 if the opcode is valid, -1 otherwise
+ * @returns {@link OpcodeCheck}
  */
-int validate_opcode_operand(String word, int operand_count) {
+OpcodeCheck validate_opcode_operand(String word, int operand_count) {
     int required_operands = get_operands_number_per_opcode(word);
 
     /**
      * Not a command
      */
     if (required_operands == -1) {
-        return -1;
+        return NOT_EXISTS;
     }
 
-    if (operand_count == required_operands) {
-        return 1;
+    if (operand_count != required_operands) {
+        return INVALID_OPERANDS;
     }
 
-    return -1;
+    return VALID;
 }

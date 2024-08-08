@@ -6,6 +6,53 @@
 #include <string.h>
 
 /**
+ * Extracts string from a given position by words
+ *
+ * @param line The input line from which to extract the word
+ * @param word_number The position of the word to extract
+ */
+String substring_words(String line, int word_number) {
+    String word;
+    line = trim_string(line);
+
+    /* Skip over the current word (non-space characters) */
+    while (word_number > 0) {
+        /* Skip current word */
+        while (*line && !isspace((unsigned char)*line)) {
+            line++;
+        }
+
+        /* Skip over the spaces */
+        while (*line && isspace((unsigned char)*line)) {
+            line++;
+        }
+
+        /**
+         * Reached to the next word
+         */
+
+        /* End of String */
+        if (*line == '\0') {
+            return NULL;
+        }
+
+        word_number--;
+    }
+
+    /**
+     * Create a copy of the rest
+     */
+    word = (String)malloc(strlen(line) + 1);
+    if (word == NULL) {
+        printf("Error(substring_words): Could not allocate memory\n");
+        exit(EXIT_FAILURE);
+    }
+
+    strcpy(word, line);
+    return word;
+}
+
+/**
  * Replace a substring with another substring
  *
  * @param original The original string
@@ -37,7 +84,8 @@ String replace_substring(String original, String to_replace,
     newStr = (String)malloc(newStrLen);
 
     if (!newStr) {
-        printf("Error: Could not allocate `newStr` memory\n");
+        printf(
+            "Error(replace_substring): Could not allocate `newStr` memory\n");
         return NULL;
     }
 
@@ -114,7 +162,7 @@ String get_first_word_from_line(String line) {
 
     word = (String)malloc(sizeof(char) * (end + 1));
     if (word == NULL) {
-        printf("Error: Could not allocate memory\n");
+        printf("Error(get_first_word_from_line): Could not allocate memory\n");
         exit(EXIT_FAILURE);
     }
 
@@ -210,14 +258,15 @@ String remove_quotation(String origin) {
 
     /* Check if the string starts and ends with quotes */
     if (length < 3 || origin[0] != '"' || origin[length - 1] != '"') {
-        printf("Error: Invalid string structure\n");
+        printf("Error(remove_quotation): Invalid string structure\n");
         return NULL;
     }
 
     new_string = (String)malloc(length - 1);
 
     if (new_string == NULL) {
-        printf("Error: failed to allocate memory for %s\n", new_string);
+        printf("Error(remove_quotation): failed to allocate memory for %s\n",
+               new_string);
         exit(EXIT_FAILURE);
     }
 
@@ -228,4 +277,39 @@ String remove_quotation(String origin) {
     new_string[length - 2] = '\0';
 
     return new_string;
+}
+
+/**
+ * Split a string into tokens based on a delimiter
+ *
+ * @param line The string to split
+ * @param delimiter The delimiter to split the string by
+ *
+ * @returns An array of strings containing the tokens
+ */
+String* split_string(String line, String delimiter) {
+    String* tokens = NULL;
+    String token = strtok(line, delimiter);
+    int i = 0;
+
+    while (token != NULL) {
+        tokens = (String*)realloc(tokens, sizeof(String) * (i + 1));
+        if (tokens == NULL) {
+            printf("Error(split_string): failed to allocate memory\n");
+            exit(EXIT_FAILURE);
+        }
+
+        tokens[i] = token;
+        token = strtok(NULL, delimiter);
+        i++;
+    }
+
+    tokens = (String*)realloc(tokens, sizeof(String) * (i + 1));
+    if (tokens == NULL) {
+        printf("Error(split_string): failed to allocate memory\n");
+        exit(EXIT_FAILURE);
+    }
+
+    tokens[i] = NULL;
+    return tokens;
 }
