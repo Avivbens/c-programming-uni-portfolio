@@ -9,6 +9,5 @@
 #define MIN_COMMAND_LENGTH 3
 #define MAX_COMMAND_LENGTH 4
 #define REGISTER_NAME_LENGTH 2
-#define OPCODES_NUM 16
 
 #endif

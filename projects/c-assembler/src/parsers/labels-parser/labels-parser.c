@@ -95,8 +95,9 @@ static int is_label_name_ok(String name) {
 /**
  * @param str - The string we want to check
  * @returns 1 if the string is a valid content of a string, 0 otherwise
+ *
+ * TODO - WHAT IS THAT?!
  */
-
 static int is_valid_string(String str) {
     int i;
     int len = strlen(str);
@@ -113,8 +114,11 @@ static int is_valid_string(String str) {
 /**
  * @param str - The string we want to check
  * @returns 1 if the string is a valid content of a string, 0 otherwise
+ *
+ * @deprecated
+ * TODO - yeah, no chance
+ * Please explain why we need this function, and we will rewrite it
  */
-
 static int count_numbers(char *str, int start_index) {
     int count;
     int in_number = 0;
@@ -323,6 +327,11 @@ static int label_registration(String file_name) {
             }
         }
 
+        /**
+         * ------------------------------
+         * TODO - from here to the bottom - we need a full refactor
+         * ------------------------------
+         */
         switch ((int)label_type) {
             case LABEL_VIOLATION:
                 printf("line: %d, Error: violation with labels system!\n",
@@ -445,93 +454,94 @@ static int label_registration(String file_name) {
                                 get_instruction_counter(helper + 1);
                             }
                         }
-
-                        continue;
-
-                        case LABEL_DATA:
-                            word = get_word(line, 3);
-                            helper = count_numbers(line, 3);
-                            if (helper == -1) {
-                                printf(
-                                    "Error: Invalid string %s ,label %s can't "
-                                    "be added to "
-                                    "symbols table\n",
-                                    word, get_word(line, 0));
-                                exit_code = EXIT_FAILURE;
-                            }
-                            word = replace_substring(strdup(get_word(line, 0)),
-                                                     (String) ":", (String) "");
-                            add_label(word, LABEL_STRING, DC);
-                            if (add_label == 1) {
-                                printf(
-                                    "Error: Label %s can't be added to symbols "
-                                    "table\n",
-                                    word);
-                                exit_code = EXIT_FAILURE;
-                                continue;
-                            }
-                            get_data_counter(helper);
-                            continue;
-
-                        case LABEL_STRING:
-                            /*Checks if the string that appears after the label
-                             * is correct before adding the label*/
-                            word = get_word(line, 3);
-                            word = remove_quotation(word);
-                            is_valid_string(word);
-                            if (is_valid_string == 0) {
-                                printf(
-                                    "Error: Invalid string %s ,label %s can't "
-                                    "be added to "
-                                    "symbols table\n",
-                                    word, get_word(line, 0));
-                                exit_code = EXIT_FAILURE;
-                                continue;
-                            }
-                            /*If the string is correct, we will add the label to
-                             * the symbol table*/
-                            word = replace_substring(strdup(get_word(line, 0)),
-                                                     (String) ":", (String) "");
-                            add_label(word, LABEL_STRING, DC);
-                            if (add_label == 1) {
-                                printf(
-                                    "Error: Label %s can't be added to symbols "
-                                    "table\n",
-                                    word);
-                                exit_code = EXIT_FAILURE;
-                                continue;
-                            }
-                            /*increment dc according to word length + '0' at the
-                             * end */
-                            get_data_counter(strlen(get_word(line, 3)) - 1);
-                            continue;
                     }
+                    continue;
                 }
 
-                return exit_code;
-        }
-
-        void *handle_labels(String * file_names) {
-            int i;
-            int is_failed = EXIT_SUCCESS;
-            int label_reg_res = EXIT_SUCCESS;
-            /* int label_fill_res = EXIT_SUCCESS; */
-
-            /**
-             * Register labels
-             */
-            for (i = 0; file_names[i] != NULL; i++) {
-                label_reg_res = label_registration(file_names[i]);
-
-                if (label_reg_res == EXIT_FAILURE) {
-                    is_failed = EXIT_FAILURE;
+            case LABEL_DATA:
+                word = get_word(line, 3);
+                helper = count_numbers(line, 3);
+                if (helper == -1) {
+                    printf(
+                        "Error: Invalid string %s ,label %s can't "
+                        "be added to "
+                        "symbols table\n",
+                        word, get_word(line, 0));
+                    exit_code = EXIT_FAILURE;
                 }
-            }
+                word = replace_substring(strdup(get_word(line, 0)),
+                                         (String) ":", (String) "");
+                add_label(word, LABEL_STRING, DC);
+                if (add_label == 1) {
+                    printf(
+                        "Error: Label %s can't be added to symbols "
+                        "table\n",
+                        word);
+                    exit_code = EXIT_FAILURE;
+                    continue;
+                }
+                get_data_counter(helper);
+                continue;
 
-            if (is_failed) {
-                printf("Error: Could not register labels\n");
-                exit(EXIT_FAILURE);
-            }
-
-            return NULL;
+            case LABEL_STRING:
+                /*Checks if the string that appears after the label
+                 * is correct before adding the label*/
+                word = get_word(line, 3);
+                word = remove_quotation(word);
+                is_valid_string(word);
+                if (is_valid_string == 0) {
+                    printf(
+                        "Error: Invalid string %s ,label %s can't "
+                        "be added to "
+                        "symbols table\n",
+                        word, get_word(line, 0));
+                    exit_code = EXIT_FAILURE;
+                    continue;
+                }
+                /*If the string is correct, we will add the label to
+                 * the symbol table*/
+                word = replace_substring(strdup(get_word(line, 0)),
+                                         (String) ":", (String) "");
+                add_label(word, LABEL_STRING, DC);
+                if (add_label == 1) {
+                    printf(
+                        "Error: Label %s can't be added to symbols "
+                        "table\n",
+                        word);
+                    exit_code = EXIT_FAILURE;
+                    continue;
+                }
+                /*increment dc according to word length + '0' at the
+                 * end */
+                get_data_counter(strlen(get_word(line, 3)) - 1);
+                continue;
         }
+    }
+
+    return exit_code;
+}
+
+void *handle_labels(String *file_names) {
+    int i;
+    int is_failed = EXIT_SUCCESS;
+    int label_reg_res = EXIT_SUCCESS;
+    /* int label_fill_res = EXIT_SUCCESS; */
+
+    /**
+     * Register labels
+     */
+    for (i = 0; file_names[i] != NULL; i++) {
+        label_reg_res = label_registration(file_names[i]);
+
+        if (label_reg_res == EXIT_FAILURE) {
+            is_failed = EXIT_FAILURE;
+        }
+    }
+
+    if (is_failed) {
+        printf("Error: Could not register labels\n");
+        exit(EXIT_FAILURE);
+    }
+
+    return NULL;
+}

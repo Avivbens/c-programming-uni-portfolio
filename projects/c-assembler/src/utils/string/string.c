@@ -198,27 +198,34 @@ int ends_with(String str, String suffix) {
     return strncmp(str + str_len - suffix_len, suffix, suffix_len) == 0;
 }
 
-char* remove_quotation(char* origin) {
+/**
+ * Remove the quotation marks from a string
+ *
+ * @param origin The string to remove the quotation marks from
+ * @returns A string without the quotation marks
+ */
+String remove_quotation(String origin) {
     int length = strlen(origin);
+    String new_string;
 
-    /* Check if the string starts and ends with quotes*/
+    /* Check if the string starts and ends with quotes */
     if (length < 3 || origin[0] != '"' || origin[length - 1] != '"') {
         printf("Error: Invalid string structure\n");
-        exit(EXIT_FAILURE);
+        return NULL;
     }
 
-    /* Allocate memory for the new string (length - 2 for removing quotes + 1
-     * for null terminator)*/
-    char* new_string = (char*)malloc(length - 1);
+    new_string = (String)malloc(length - 1);
 
     if (new_string == NULL) {
         printf("Error: failed to allocate memory for %s\n", new_string);
-        return EXIT_FAILURE;
+        exit(EXIT_FAILURE);
     }
 
-    // Copy the substring excluding the first and last characters (quotes)
+    /**
+     * Copy just the relevant string parts
+     */
     strncpy(new_string, origin + 1, length - 2);
-    new_string[length - 2] = '\0';  // Null-terminate the new string
+    new_string[length - 2] = '\0';
 
     return new_string;
 }

@@ -4,9 +4,18 @@
 #ifndef COMMAND_H
 #define COMMAND_H
 
+#define OPCODES_NUM 16
+
+String opcodes[OPCODES_NUM] = {(String) "mov", (String) "cmp", (String) "add",
+                               (String) "sub", (String) "lea", (String) "clr",
+
+                               (String) "not", (String) "inc", (String) "dec",
+                               (String) "jmp", (String) "bne", (String) "red",
+
+                               (String) "prn", (String) "jsr", (String) "rts",
+                               (String) "stop"};
+
 int is_command(String word);
-static char* opcodes[OPCODES_NUM] = {"mov", "cmp", "add", "sub", "lea", "clr",
-                                     "not", "inc", "dec", "jmp", "bne", "red",
-                                     "prn", "jsr", "rts", "stop"};
+int validate_opcode_operand(String word, int operand_count);
 
 #endif
