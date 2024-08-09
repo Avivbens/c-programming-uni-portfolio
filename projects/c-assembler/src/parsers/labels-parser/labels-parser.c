@@ -57,11 +57,11 @@ static LabelType get_label_type(String line) {
     }
 
     second_word = get_word(line, 1);
-    if (strcmp(second_word, LABEL_DATA_PREFIX)) {
+    if (strcmp(second_word, LABEL_DATA_PREFIX) == 0) {
         return LABEL_DATA;
     }
 
-    if (strcmp(second_word, LABEL_STRING_PREFIX)) {
+    if (strcmp(second_word, LABEL_STRING_PREFIX) == 0) {
         return LABEL_STRING;
     }
 
@@ -138,7 +138,7 @@ static int is_label_name_allowed(String name) {
     }
 
     /* Cannot be a native operand */
-    if (is_command(name)) {
+    if (is_command(name) != -1) {
         printf(
             "Error: label '%s' name is not valid- already defined as a command "
             "name\n",

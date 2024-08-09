@@ -117,6 +117,10 @@ String replace_substring(String original, String to_replace,
 String trim_string(String str) {
     String end;
 
+    if (str == NULL) {
+        return NULL;
+    }
+
     /* Trim leading space */
     while (isspace((unsigned char)*str)) {
         str++;
