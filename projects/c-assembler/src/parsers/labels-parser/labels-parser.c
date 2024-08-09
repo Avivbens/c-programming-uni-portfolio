@@ -247,10 +247,11 @@ static int handle_no_type_label_reg(String line, int line_number) {
 
     helper = add_label(label, NOT_LABEL_TYPE,
                        get_instruction_counter(operands_amount + 1));
-    if (helper != 0) {
+    if (helper != EXIT_SUCCESS) {
         printf("Error: label %s can not be added to symbols table\n", label);
         return EXIT_FAILURE;
     }
+
     return EXIT_SUCCESS;
 }
 
@@ -270,9 +271,11 @@ static int handle_data_label_reg(String line, int line_number) {
 
     helper = add_label(label, LABEL_DATA, get_data_counter(numbers_amount));
     if (helper != 0) {
-        printf("Error: label %s can not be added to symbols table\n", label);
+        printf("line: %d, Error: label %s can not be added to symbols table\n",
+               line_number, label);
         return EXIT_FAILURE;
     }
+
     return EXIT_SUCCESS;
 }
 
@@ -314,6 +317,7 @@ static int handle_entry_label_reg(String line, int line_number) {
         printf("Error: label %s can not be added to symbols table\n", label);
         return EXIT_FAILURE;
     }
+
     return EXIT_SUCCESS;
 }
 

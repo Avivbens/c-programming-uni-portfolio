@@ -10,7 +10,7 @@ typedef enum {
     /*  */
     INVALID_OPERANDS = -1,
     NOT_EXISTS,
-    VALID,
+    VALID
 } OpcodeCheck;
 
 String opcodes[OPCODES_NUM] = {(String) "mov", (String) "cmp", (String) "add",
