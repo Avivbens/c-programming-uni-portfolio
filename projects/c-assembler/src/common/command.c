@@ -5,6 +5,15 @@
 #include <stdlib.h>
 #include <string.h>
 
+static String opcodes[OPCODES_NUM] = {
+    (String) "mov", (String) "cmp", (String) "add", (String) "sub",
+    (String) "lea", (String) "clr",
+
+    (String) "not", (String) "inc", (String) "dec", (String) "jmp",
+    (String) "bne", (String) "red",
+
+    (String) "prn", (String) "jsr", (String) "rts", (String) "stop"};
+
 /**
  * Get the number of operands for a given opcode
  *
