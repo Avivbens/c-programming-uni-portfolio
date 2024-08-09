@@ -2,8 +2,9 @@
 #include <stdlib.h>
 
 #include "./cli/cli-parser.h"
-#include "./file-handler/file-handler.h"
-#include "./macros-parser/macros-parser.h"
+#include "./parsers/labels-parser/labels-parser.h"
+#include "./parsers/macros-parser/macros-parser.h"
+#include "./utils/file/file.h"
 #include "./utils/string/string.h"
 
 int main(int argc, char *argv[]) {
@@ -22,6 +23,10 @@ int main(int argc, char *argv[]) {
      */
     handle_macros(files);
 
+    /**
+     * Handle labels - register and add address
+     */
+    handle_labels(files);
     free(files);
     return 0;
 }

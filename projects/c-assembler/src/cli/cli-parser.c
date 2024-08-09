@@ -1,4 +1,4 @@
-#include "./cli-parser.h"
+#include "cli-parser.h"
 
 #include <stdio.h>
 #include <stdlib.h>
