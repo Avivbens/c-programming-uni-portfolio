@@ -21,6 +21,7 @@ typedef struct OpcodeBinary {
 
 OpcodeBinary* get_command(String word);
 String generate_opcode_binary(String opcode);
+int get_operands_number_per_opcode(String word);
 OpcodeCheck validate_opcode_operand(String word, int operand_count);
 
 #endif

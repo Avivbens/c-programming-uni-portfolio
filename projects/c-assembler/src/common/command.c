@@ -30,7 +30,7 @@ static OpcodeBinary opcodes[OPCODES_NUM] = {
  *
  * @returns - amount of required operands, -1 if not a valid opcode
  */
-static int get_operands_number_per_opcode(String word) {
+int get_operands_number_per_opcode(String word) {
     OpcodeBinary* opcode = get_command(trim_string(word));
 
     /**

@@ -39,6 +39,36 @@ static String get_first_word_from_line(String line) {
 }
 
 /**
+ * Pad a string to the left with a given character
+ *
+ * @param str The string to pad
+ * @param length The length to pad the string to
+ * @param padding The character to pad the string with
+ *
+ * @returns A string containing the padded string with the fixed length
+ */
+String pad_left(String str, int length, char padding) {
+    int str_len = strlen(str);
+    int max_size = str_len > length ? str_len : length;
+    String padded_str = (String)malloc(sizeof(char) * (max_size + 1));
+    int i;
+
+    if (padded_str == NULL) {
+        printf("Error(pad_left): Could not allocate memory\n");
+        exit(EXIT_FAILURE);
+    }
+
+    for (i = 0; i < length - str_len; i++) {
+        padded_str[i] = padding;
+    }
+
+    strncpy(padded_str + i, str, str_len);
+    padded_str[length] = '\0';
+
+    return padded_str;
+}
+
+/**
  * Extracts string from a given position by words
  *
  * @param line The input line from which to extract the word
@@ -316,4 +346,31 @@ String* split_string(String line, String delimiter) {
 
     tokens[i] = NULL;
     return tokens;
+}
+
+/**
+ * Cast a decimal number to a binary string
+ *
+ * @param number The decimal number to cast to binary
+ *
+ * @returns A string containing the binary representation of the number
+ */
+String cast_to_binary(String number) {
+    int num = atoi(number);
+    int i = 0;
+    String binary = (String)malloc((32 + 1) * sizeof(char));
+
+    if (binary == NULL) {
+        printf("Error(cast_to_binary): Could not allocate memory\n");
+        exit(EXIT_FAILURE);
+    }
+
+    for (i = 32 - 1; i >= 0; i--) {
+        binary[i] = (num & 1) ? '1' : '0';
+        num >>= 1;
+    }
+
+    binary[32] = '\0';
+
+    return binary;
 }
