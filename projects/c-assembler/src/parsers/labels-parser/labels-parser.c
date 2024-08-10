@@ -260,6 +260,7 @@ static int handle_data_label_reg(String line, int line_number) {
     String label =
         replace_substring(strdup(get_word(line, 0)), (String) ":", (String) "");
     int helper;
+    int i;
 
     String *numbers;
     int numbers_amount = 0;
@@ -268,6 +269,14 @@ static int handle_data_label_reg(String line, int line_number) {
 
     numbers = split_string(rest, (String) ",");
     numbers_amount = get_array_length(numbers, sizeof(String));
+
+    for (i = 0; i < numbers_amount; i++) {
+        if (!is_number(trim_string(numbers[i]))) {
+            printf("line: %d, Error: '%s' is not a valid number\n", line_number,
+                   numbers[i]);
+            return EXIT_FAILURE;
+        }
+    }
 
     helper = add_label(label, LABEL_DATA, get_data_counter(numbers_amount));
     if (helper != 0) {
