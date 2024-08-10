@@ -11,7 +11,7 @@
  *
  * @return length of the array
  */
-int get_array_length(void *array, int memory_size_per_cell) {
+int get_string_array_length(void *array, int memory_size_per_cell) {
     int length = 0;
     char *ptr = (char *)array;
 
@@ -22,9 +22,13 @@ int get_array_length(void *array, int memory_size_per_cell) {
     return length;
 }
 
-void free_array_recursively(void **array, int length) {
+void free_string_array_recursively(String *array, int length) {
     int i;
     for (i = 0; i < length; i++) {
+        if (array[i] == (String)'\0') {
+            continue;
+        }
+
         free(array[i]);
         array[i] = NULL;
     }
