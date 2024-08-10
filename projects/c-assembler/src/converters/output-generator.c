@@ -27,6 +27,8 @@ static int filter_line(String line, LabelType label_type) {
 /**
  * Extract the opcode from a line
  *
+ * @attention - free this memory after use
+ *
  * @param line the line to extract the opcode from
  *
  * @returns the opcode name
@@ -47,6 +49,8 @@ static String extract_opcode(String line, LabelType label_type) {
 
 /**
  * Extract the operand from a line
+ *
+ * @attention - free this memory after use
  *
  * @param line the line to extract the operand from
  * @param label_type the label type of the line

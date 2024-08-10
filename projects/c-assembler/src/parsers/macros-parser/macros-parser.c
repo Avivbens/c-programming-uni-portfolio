@@ -20,16 +20,18 @@ static int is_close_macro(String line) {
 
 /**
  * Trim the line value and try to match it with a macro name
+ *
+ * @attention - free this memory after use
  */
 static String extract_macro_name(String line) {
-    String copy = strdup(line);
-    String trimmed = trim_string(copy);
-
+    String trimmed = trim_string(line);
     return trimmed;
 }
 
 /**
  * Create a post-processed file based on the registered macros
+ *
+ * @attention - free this memory after use
  *
  * @throw In case of an error, it would return NULL
  * @returns post-processed file path
@@ -235,6 +237,8 @@ static int macro_registration(String file_name) {
  * Register and create post-processed files
  *
  * @param file_names the original files paths without the file extension
+ *
+ * @attention - free this memory after use (array and each element)
  *
  * @throw In case of an error, it would exit the program with EXIT_FAILURE
  * @returns post-processed files paths
