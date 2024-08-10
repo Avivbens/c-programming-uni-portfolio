@@ -429,25 +429,24 @@ static int label_registration(String file_path) {
 /**
  * Register and create all labels for processed files
  *
- * @param file_names the post processed files paths, to the dist directory
+ * @param file_paths the post processed files paths, to the dist directory
  *
  * @throw In case of an error, it would exit the program with EXIT_FAILURE
  */
-void *handle_labels(String *file_names) {
+void *handle_labels(String *file_paths) {
     int i;
     int is_failed = EXIT_SUCCESS;
     int label_reg_res = EXIT_SUCCESS;
-    /* int label_fill_res = EXIT_SUCCESS; */
 
     /**
      * Register labels
      */
-    for (i = 0; file_names[i] != NULL; i++) {
-        label_reg_res = label_registration(file_names[i]);
+    for (i = 0; file_paths[i] != NULL; i++) {
+        label_reg_res = label_registration(file_paths[i]);
 
         if (label_reg_res == EXIT_FAILURE) {
             printf("Error: Could not register labels in file: '%s' \n",
-                   file_names[i]);
+                   file_paths[i]);
 
             is_failed = EXIT_FAILURE;
         }
