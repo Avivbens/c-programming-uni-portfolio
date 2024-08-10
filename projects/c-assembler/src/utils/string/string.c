@@ -6,6 +6,39 @@
 #include <string.h>
 
 /**
+ * Extracts the first word from a given line.
+ *
+ * @param line The input line from which to extract the first word.
+ * @returns A dynamically allocated string containing the first word of the
+ * line, or NULL if the line is empty or starts with a space.
+ *
+ * @throw If memory allocation fails, the program exits with EXIT_FAILURE.
+ */
+static String get_first_word_from_line(String line) {
+    int length = strlen(line);
+    String word;
+    int end = 0;
+
+    while (end < length && line[end] != ' ' && line[end] != '\0') {
+        end++;
+    }
+
+    if (end == 0) {
+        return NULL;
+    }
+
+    word = (String)malloc(sizeof(char) * (end + 1));
+    if (word == NULL) {
+        printf("Error(get_first_word_from_line): Could not allocate memory\n");
+        exit(EXIT_FAILURE);
+    }
+
+    strncpy(word, line, end);
+    word[end] = '\0';
+    return word;
+}
+
+/**
  * Extracts string from a given position by words
  *
  * @param line The input line from which to extract the word
@@ -140,39 +173,6 @@ String trim_string(String str) {
     *(end + 1) = '\0';
 
     return str;
-}
-
-/**
- * Extracts the first word from a given line.
- *
- * @param line The input line from which to extract the first word.
- * @returns A dynamically allocated string containing the first word of the
- * line, or NULL if the line is empty or starts with a space.
- *
- * @throw If memory allocation fails, the program exits with EXIT_FAILURE.
- */
-String get_first_word_from_line(String line) {
-    int length = strlen(line);
-    String word;
-    int end = 0;
-
-    while (end < length && line[end] != ' ' && line[end] != '\0') {
-        end++;
-    }
-
-    if (end == 0) {
-        return NULL;
-    }
-
-    word = (String)malloc(sizeof(char) * (end + 1));
-    if (word == NULL) {
-        printf("Error(get_first_word_from_line): Could not allocate memory\n");
-        exit(EXIT_FAILURE);
-    }
-
-    strncpy(word, line, end);
-    word[end] = '\0';
-    return word;
 }
 
 /**
