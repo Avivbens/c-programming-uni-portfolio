@@ -135,47 +135,48 @@ String substring_words(String line, int word_number) {
  */
 String replace_substring(String original, String to_replace,
                          String replacement) {
-    String temp = original;
+    String temp = strdup(original);
     int count = 0;
-    int toReplaceLen = strlen(to_replace);
-    int replacementLen = strlen(replacement);
-    int newStrLen;
+    int to_replace_len = strlen(to_replace);
+    int replacement_len = strlen(replacement);
+    int new_str_len;
 
-    String newStr;
-    String helperPtr;
+    String new_str;
+    String helper_ptr;
 
     /* Count occurrences of the substring to replace */
     while ((temp = strstr(temp, to_replace))) {
         count++;
-        temp += toReplaceLen;
+        temp += to_replace_len;
     }
 
     /* Allocate memory for the new string */
-    newStrLen = strlen(original) + (replacementLen - toReplaceLen) * count + 1;
-    newStr = (String)malloc(newStrLen);
+    new_str_len =
+        strlen(original) + (replacement_len - to_replace_len) * count + 1;
+    new_str = (String)malloc(new_str_len);
 
-    if (!newStr) {
+    if (!new_str) {
         printf(
-            "Error(replace_substring): Could not allocate `newStr` memory\n");
+            "Error(replace_substring): Could not allocate `new_str` memory\n");
         return NULL;
     }
 
-    helperPtr = newStr;
+    helper_ptr = new_str;
     while (*original) {
         /* If the substring matches, replace it */
         if (strstr(original, to_replace) == original) {
-            memcpy(helperPtr, replacement, replacementLen);
-            helperPtr += replacementLen;
-            original += toReplaceLen;
+            memcpy(helper_ptr, replacement, replacement_len);
+            helper_ptr += replacement_len;
+            original += to_replace_len;
         } else {
-            *helperPtr++ = *original++;
+            *helper_ptr++ = *original++;
         }
     }
 
     /* Null-terminate the new string */
-    *helperPtr = '\0';
+    *helper_ptr = '\0';
 
-    return newStr;
+    return new_str;
 }
 
 /**
@@ -358,13 +359,7 @@ String* split_string(String line, String delimiter) {
         i++;
     }
 
-    tokens = (String*)realloc(tokens, sizeof(String) * (i + 1));
-    if (tokens == NULL) {
-        printf("Error(split_string): failed to allocate memory\n");
-        exit(EXIT_FAILURE);
-    }
-
-    tokens[i] = NULL;
+    tokens[i] = (String)'\0';
     return tokens;
 }
 
