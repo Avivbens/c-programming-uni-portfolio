@@ -10,6 +10,7 @@
 #ifndef LABELS_PARSER_H
 #define LABELS_PARSER_H
 
+LabelType get_label_type(String line);
 void *handle_labels(String *file_names);
 
 #endif

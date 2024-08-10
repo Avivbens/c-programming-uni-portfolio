@@ -45,7 +45,7 @@ static int get_data_counter(int increment) {
  * 3 - if the label is a data label
  * 4 - if the label is a string label
  */
-static LabelType get_label_type(String line) {
+LabelType get_label_type(String line) {
     String second_word;
 
     if (starts_with(line, (String)LABEL_EXTERN_PREFIX)) {

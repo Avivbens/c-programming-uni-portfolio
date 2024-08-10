@@ -20,6 +20,7 @@ typedef struct OpcodeBinary {
 } OpcodeBinary;
 
 OpcodeBinary* get_command(String word);
+String generate_opcode_binary(String opcode);
 OpcodeCheck validate_opcode_operand(String word, int operand_count);
 
 #endif

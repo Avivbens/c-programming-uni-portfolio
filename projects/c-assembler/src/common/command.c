@@ -44,6 +44,24 @@ static int get_operands_number_per_opcode(String word) {
 }
 
 /**
+ * Generate the binary representation of an opcode
+ *
+ * @param opcode The opcode to generate the binary for
+ *
+ * @returns the binary representation of the opcode or NULL if the opcode does
+ * not exist
+ */
+String generate_opcode_binary(String opcode) {
+    OpcodeBinary* opcode_binary = get_command(opcode);
+
+    if (opcode_binary == NULL) {
+        return NULL;
+    }
+
+    return opcode_binary->binary;
+}
+
+/**
  * Check if the given token is a valid command
  *
  * @param word The token to check
