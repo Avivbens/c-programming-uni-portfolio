@@ -12,6 +12,7 @@ int main(int argc, char *argv[]) {
      * Get the files names from the command line arguments
      */
     String *files = get_files_names(argc, argv);
+    String *post_processed_files;
 
     /**
      * Verify all files exists
@@ -21,12 +22,12 @@ int main(int argc, char *argv[]) {
     /**
      * Handle macros - register and create post-processed files
      */
-    handle_macros(files);
+    post_processed_files = handle_macros(files);
 
     /**
      * Handle labels - register and add address
      */
-    handle_labels(files);
+    handle_labels(post_processed_files);
     free(files);
     return 0;
 }

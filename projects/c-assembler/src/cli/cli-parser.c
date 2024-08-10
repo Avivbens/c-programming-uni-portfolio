@@ -1,5 +1,6 @@
 #include "cli-parser.h"
 
+#include <libgen.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -50,6 +51,33 @@ String get_file_name_with_extension(String file_name, String extension) {
     strcat(file, extension);
 
     return file;
+}
+
+/**
+ * Generate the path for the post-processed file
+ *
+ * @param file_path the original file path
+ * @param extension the extension for the post-processed file
+ *
+ * @return the path for the dist file
+ */
+String generate_dist_path_for_file(String file_path, String extension) {
+    String dir_name = dirname(file_path);
+    String file_name = basename(file_path);
+
+    String target = (String)malloc(MAX_PATH_LENGTH * sizeof(char));
+
+    if (target == NULL) {
+        fprintf(stderr, "Error: Memory allocation failed\n");
+        exit(EXIT_FAILURE);
+    }
+
+    strcpy(target, dir_name);
+    strcat(target, "/../dist/");
+    strcat(target, file_name);
+    strcat(target, extension);
+
+    return target;
 }
 
 /**

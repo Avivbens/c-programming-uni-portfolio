@@ -331,7 +331,7 @@ static int handle_entry_label_reg(String line, int line_number) {
  * @throw In case of an error, it would return EXIT_FAILURE
  * @returns EXIT_SUCCESS if all macros were registered successfully
  */
-static int label_registration(String file_name) {
+static int label_registration(String file_path) {
     FILE *file;
     int exit_code = EXIT_SUCCESS;
     char line[MAX_LINE_LENGTH];
@@ -341,12 +341,9 @@ static int label_registration(String file_name) {
     String word;
     int res;
 
-    String file_path = get_file_name_with_extension(
-        file_name, (String)POST_PROCESS_FILE_EXTENSION);
-
     file = fopen(file_path, "r");
     if (file == NULL) {
-        printf("Error: Could not open file '%s'\n", file_name);
+        printf("Error: Could not open file '%s'\n", file_path);
         return EXIT_FAILURE;
     }
 
@@ -429,6 +426,13 @@ static int label_registration(String file_name) {
     return exit_code;
 }
 
+/**
+ * Register and create all labels for processed files
+ *
+ * @param file_names the post processed files paths, to the dist directory
+ *
+ * @throw In case of an error, it would exit the program with EXIT_FAILURE
+ */
 void *handle_labels(String *file_names) {
     int i;
     int is_failed = EXIT_SUCCESS;

@@ -11,5 +11,6 @@
 String *get_files_names(int argc, String *argv);
 void verify_files_exists(String *files);
 String get_file_name_with_extension(String file_name, String extension);
+String generate_dist_path_for_file(String file_path, String extension);
 
 #endif

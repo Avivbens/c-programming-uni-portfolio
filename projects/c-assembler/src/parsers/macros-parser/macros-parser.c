@@ -48,7 +48,7 @@ static String create_post_processed_file(String file_name) {
     String original_file_path = get_file_name_with_extension(
         file_name, (String)ORIGINAL_FILE_EXTENSION);
 
-    String post_processed_file_path = get_file_name_with_extension(
+    String post_processed_file_path = generate_dist_path_for_file(
         file_name, (String)POST_PROCESS_FILE_EXTENSION);
 
     if (macro_name == NULL) {
@@ -234,7 +234,7 @@ static int macro_registration(String file_name) {
 /**
  * Register and create post-processed files
  *
- * Files should be the original input, without the file extension
+ * @param file_names the original files paths without the file extension
  *
  * @throw In case of an error, it would exit the program with EXIT_FAILURE
  * @returns post-processed files paths
@@ -246,6 +246,12 @@ String *handle_macros(String *file_names) {
 
     String post_processed_file_path;
     String *post_processed_files = (String *)malloc(MAX_PATH_LENGTH);
+
+    if (post_processed_files == NULL) {
+        fprintf(stderr,
+                "Error: Could not allocate memory for post-processed files\n");
+        exit(EXIT_FAILURE);
+    }
 
     /**
      * Register macros
