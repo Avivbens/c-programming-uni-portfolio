@@ -12,7 +12,11 @@
  *
  * @returns 1 if the line should be processed, 0 if it should be skipped
  */
-static int filter_line(LabelType label_type) {
+static int filter_line(String line, LabelType label_type) {
+    if (starts_with(trim_string(line), (String) ".data")) {
+        return 0;
+    }
+
     if (label_type == NOT_LABEL || label_type == NOT_LABEL_TYPE) {
         return 1;
     }
@@ -53,13 +57,13 @@ static String extract_opcode(String line, LabelType label_type) {
 static String extract_operand(String line, LabelType label_type,
                               int operand_index) {
     String operand;
+    String *operands;
+    int operands_prefix = label_type == NOT_LABEL ? 1 : 2;
+    String operands_string = substring_words(line, operands_prefix);
 
-    if (label_type == NOT_LABEL) {
-        operand = get_word(line, 1 + operand_index);
-        return trim_string(operand);
-    }
+    operands = split_string(operands_string, (String) ",");
+    operand = operands[operand_index];
 
-    operand = get_word(line, 2 + operand_index);
     return trim_string(operand);
 }
 
@@ -67,6 +71,8 @@ static String extract_operand(String line, LabelType label_type,
  * Generate the address mode for an operand
  *
  * @param operand the operand to generate the address mode for
+ *
+ * TODO - what about just numbers, without the #?
  *
  * @returns the address mode for the operands
  */
@@ -88,7 +94,8 @@ AddressMode get_address_mode(String operand) {
         /**
          * Validate the operand is a register
          */
-        if (!is_register(operand)) {
+        if (!is_register(
+                replace_substring(operand, (String) "*", (String) ""))) {
             return ERROR;
         }
 
@@ -126,6 +133,8 @@ static int generate_file_output(String file_path) {
     LabelType line_label_type;
     AddressMode address_mode;
 
+    String helper;
+
     String line_res;
 
     file = fopen(file_path, "r");
@@ -139,9 +148,9 @@ static int generate_file_output(String file_path) {
      */
     while (fgets(line, sizeof(line), file)) {
         line_number++;
-        line_label_type = get_label_type(line);
+        line_label_type = is_label(line);
 
-        if (filter_line(line_label_type) == 0) {
+        if (filter_line(line, line_label_type) == 0) {
             continue;
         }
 
@@ -190,7 +199,18 @@ static int generate_file_output(String file_path) {
                 break;
             }
 
-            strcat(line_res, pad_left(cast_to_binary(address_mode), 4, '0'));
+            helper = (String)malloc(sizeof(char) * 5);
+            if (helper == NULL) {
+                printf("Error: Could not allocate memory for helper\n");
+                exit(EXIT_FAILURE);
+            }
+
+            sprintf(helper, "%d", address_mode);
+
+            /**
+             * TODO - might be able to drop `pad_left`
+             */
+            strcat(line_res, pad_left(cast_to_binary(helper), 4, '0'));
         }
     }
 

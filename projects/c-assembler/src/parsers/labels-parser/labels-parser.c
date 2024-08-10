@@ -45,7 +45,7 @@ static int get_data_counter(int increment) {
  * 3 - if the label is a data label
  * 4 - if the label is a string label
  */
-LabelType get_label_type(String line) {
+static LabelType get_label_type(String line) {
     String second_word;
 
     if (starts_with(line, (String)LABEL_EXTERN_PREFIX)) {
@@ -166,7 +166,7 @@ static int is_label_name_allowed(String name) {
  * A label is a string that starts with a letter or a dot, followed by a string
  * Cannot start by a digit, and cannot contain any special characters
  */
-static LabelType is_label(String line) {
+LabelType is_label(String line) {
     LabelType label_type = get_label_type(line);
     String label_name;
     String helper;

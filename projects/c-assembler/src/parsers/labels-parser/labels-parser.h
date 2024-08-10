@@ -11,7 +11,7 @@
 #ifndef LABELS_PARSER_H
 #define LABELS_PARSER_H
 
-LabelType get_label_type(String line);
+LabelType is_label(String line);
 void *handle_labels(String *file_names);
 
 #endif
