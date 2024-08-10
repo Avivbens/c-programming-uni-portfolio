@@ -8,6 +8,8 @@
 /**
  * Extracts the first word from a given line.
  *
+ * @attention - free this memory after use
+ *
  * @param line The input line from which to extract the first word.
  * @returns A dynamically allocated string containing the first word of the
  * line, or NULL if the line is empty or starts with a space.
@@ -41,6 +43,8 @@ static String get_first_word_from_line(String line) {
 /**
  * Pad a string to the left with a given character
  *
+ * @attention - free this memory after use
+ *
  * @param str The string to pad
  * @param length The length to pad the string to
  * @param padding The character to pad the string with
@@ -70,6 +74,8 @@ String pad_left(String str, int length, char padding) {
 
 /**
  * Extracts string from a given position by words
+ *
+ * @attention - free this memory after use
  *
  * @param line The input line from which to extract the word
  * @param word_number The position of the word to extract
@@ -117,6 +123,8 @@ String substring_words(String line, int word_number) {
 
 /**
  * Replace a substring with another substring
+ *
+ * @attention - free this memory after use
  *
  * @param original The original string
  * @param to_replace The substring to replace
@@ -173,24 +181,29 @@ String replace_substring(String original, String to_replace,
 /**
  * Trim leading and trailing spaces from a string
  *
+ * @attention - free this memory after use
+ *
  * @param str The string to trim
  *
- * @returns The trimmed string
+ * @returns A new trimmed string
  */
 String trim_string(String str) {
+    String new_str;
     String end;
 
     if (str == NULL) {
         return NULL;
     }
 
+    new_str = (String)malloc(strlen(str) + 1);
+    if (new_str == NULL) {
+        printf("Error(trim_string): Could not allocate memory\n");
+        exit(EXIT_FAILURE);
+    }
+
     /* Trim leading space */
     while (isspace((unsigned char)*str)) {
         str++;
-    }
-
-    if (*str == '\0') {
-        return str;
     }
 
     /* Trim trailing space */
@@ -199,14 +212,17 @@ String trim_string(String str) {
         end--;
     }
 
-    /* Write new null terminator */
-    *(end + 1) = '\0';
+    /* Put new string into the new_str */
+    strncpy(new_str, str, end - str + 1);
+    new_str[end - str + 1] = '\0';
 
-    return str;
+    return new_str;
 }
 
 /**
  * Get a word in a line based on its position
+ *
+ * @attention - free this memory after use
  *
  * @param line The input line from which to extract the word
  * @param word_number The position of the word to extract
@@ -283,6 +299,8 @@ int ends_with(String str, String suffix) {
 /**
  * Remove the quotation marks from a string
  *
+ * @attention - free this memory after use
+ *
  * @param origin The string to remove the quotation marks from
  * @returns A string without the quotation marks
  */
@@ -315,6 +333,8 @@ String remove_quotation(String origin) {
 
 /**
  * Split a string into tokens based on a delimiter
+ *
+ * @attention - free this memory after use (array and each element)
  *
  * @param line The string to split
  * @param delimiter The delimiter to split the string by
@@ -350,6 +370,8 @@ String* split_string(String line, String delimiter) {
 
 /**
  * Cast a decimal number to a binary string
+ *
+ * @attention - free this memory after use
  *
  * @param number The decimal number to cast to binary
  *

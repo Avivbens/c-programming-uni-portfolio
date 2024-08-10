@@ -1,6 +1,7 @@
-#include "./array.h"
+#include "array.h"
 
 #include <stdio.h>
+#include <stdlib.h>
 
 /**
  * Get the length of a null-terminated array
@@ -19,4 +20,15 @@ int get_array_length(void *array, int memory_size_per_cell) {
     }
 
     return length;
+}
+
+void free_array_recursively(void **array, int length) {
+    int i;
+    for (i = 0; i < length; i++) {
+        free(array[i]);
+        array[i] = NULL;
+    }
+
+    free(array);
+    array = NULL;
 }
