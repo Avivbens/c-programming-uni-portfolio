@@ -232,14 +232,14 @@ static int handle_no_type_label_reg(String line, int line_number) {
     res = validate_opcode_operand(opcode, operands_amount);
 
     if (res == NOT_EXISTS) {
-        printf("line: %d, Error: Opcode %s not exists! \n", line_number,
+        printf("line: %d, Error: Opcode '%s' not exists! \n", line_number,
                opcode);
 
         return EXIT_FAILURE;
     }
 
     if (res == INVALID_OPERANDS) {
-        printf("line: %d, Error: Opcode %s can not accept %d operands \n",
+        printf("line: %d, Error: Opcode '%s' can not accept %d operands \n",
                line_number, opcode, operands_amount);
 
         return EXIT_FAILURE;
@@ -248,7 +248,7 @@ static int handle_no_type_label_reg(String line, int line_number) {
     helper = add_label(label, NOT_LABEL_TYPE,
                        get_instruction_counter(operands_amount + 1));
     if (helper != EXIT_SUCCESS) {
-        printf("Error: label %s can not be added to symbols table\n", label);
+        printf("Error: label '%s' can not be added to symbols table\n", label);
         return EXIT_FAILURE;
     }
 
@@ -271,8 +271,9 @@ static int handle_data_label_reg(String line, int line_number) {
 
     helper = add_label(label, LABEL_DATA, get_data_counter(numbers_amount));
     if (helper != 0) {
-        printf("line: %d, Error: label %s can not be added to symbols table\n",
-               line_number, label);
+        printf(
+            "line: %d, Error: label '%s' can not be added to symbols table\n",
+            line_number, label);
         return EXIT_FAILURE;
     }
 
@@ -298,14 +299,14 @@ static int handle_entry_label_reg(String line, int line_number) {
     res = validate_opcode_operand(opcode, operands_amount);
 
     if (res == NOT_EXISTS) {
-        printf("line: %d, Error: Opcode %s not exists! \n", line_number,
+        printf("line: %d, Error: Opcode '%s' not exists! \n", line_number,
                opcode);
 
         return EXIT_FAILURE;
     }
 
     if (res == INVALID_OPERANDS) {
-        printf("line: %d, Error: Opcode %s can not accept %d operands \n",
+        printf("line: %d, Error: Opcode '%s' can not accept %d operands \n",
                line_number, opcode, operands_amount);
 
         return EXIT_FAILURE;
@@ -314,7 +315,7 @@ static int handle_entry_label_reg(String line, int line_number) {
     helper = add_label(label, LABEL_ENTRY,
                        get_instruction_counter(operands_amount + 1));
     if (helper != 0) {
-        printf("Error: label %s can not be added to symbols table\n", label);
+        printf("Error: label '%s' can not be added to symbols table\n", label);
         return EXIT_FAILURE;
     }
 
@@ -345,7 +346,7 @@ static int label_registration(String file_name) {
 
     file = fopen(file_path, "r");
     if (file == NULL) {
-        printf("Error: Could not open file %s\n", file_name);
+        printf("Error: Could not open file '%s'\n", file_name);
         return EXIT_FAILURE;
     }
 
@@ -441,7 +442,7 @@ void *handle_labels(String *file_names) {
         label_reg_res = label_registration(file_names[i]);
 
         if (label_reg_res == EXIT_FAILURE) {
-            printf("Error: Could not register labels in file: %s \n",
+            printf("Error: Could not register labels in file: '%s' \n",
                    file_names[i]);
 
             is_failed = EXIT_FAILURE;
