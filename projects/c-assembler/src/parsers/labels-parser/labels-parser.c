@@ -339,6 +339,7 @@ static int label_registration(String file_path) {
     LabelType label_type;
 
     String word;
+    String helper;
     int res;
 
     file = fopen(file_path, "r");
@@ -414,10 +415,13 @@ static int label_registration(String file_path) {
                         "table\n ");
                     continue;
                 }
-                word = replace_substring(strdup(get_word(line, 0)),
-                                         (String) ":", (String) "");
+
+                word = replace_substring(get_word(line, 0), (String) ":",
+                                         (String) "");
+                helper = get_word(line, 2);
+
                 res = add_label(word, LABEL_STRING,
-                                get_data_counter(strlen(word) - 2));
+                                get_data_counter(strlen(helper) - 2 + 1));
                 exit_code = update_exit_code(exit_code, res);
                 continue;
         }

@@ -76,7 +76,7 @@ OpcodeBinary* get_command(String word) {
     }
 
     for (i = 0; i < OPCODES_NUM; i++) {
-        if (strcmp(word, *opcodes[i].opcode) == 0) {
+        if (strcmp((const char*)word, opcodes[i].opcode) == 0) {
             return &opcodes[i];
         }
     }
