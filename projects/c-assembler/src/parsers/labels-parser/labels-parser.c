@@ -138,7 +138,7 @@ static int is_label_name_allowed(String name) {
     }
 
     /* Cannot be a native operand */
-    if (is_command(name) != -1) {
+    if (get_command(name) != NULL) {
         printf(
             "Error: label '%s' name is not valid- already defined as a command "
             "name\n",

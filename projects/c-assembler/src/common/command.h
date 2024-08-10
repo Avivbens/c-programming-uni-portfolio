@@ -13,7 +13,13 @@ typedef enum {
     VALID
 } OpcodeCheck;
 
-int is_command(String word);
+typedef struct OpcodeBinary {
+    String opcode;
+    String binary;
+    int operands;
+} OpcodeBinary;
+
+OpcodeBinary* get_command(String word);
 OpcodeCheck validate_opcode_operand(String word, int operand_count);
 
 #endif

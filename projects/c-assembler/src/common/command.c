@@ -5,14 +5,23 @@
 #include <stdlib.h>
 #include <string.h>
 
-static String opcodes[OPCODES_NUM] = {
-    (String) "mov", (String) "cmp", (String) "add", (String) "sub",
-    (String) "lea", (String) "clr",
-
-    (String) "not", (String) "inc", (String) "dec", (String) "jmp",
-    (String) "bne", (String) "red",
-
-    (String) "prn", (String) "jsr", (String) "rts", (String) "stop"};
+static OpcodeBinary opcodes[OPCODES_NUM] = {
+    {(String) "mov", (String) "0000", 2},
+    {(String) "cmp", (String) "0001", 2},
+    {(String) "add", (String) "0010", 2},
+    {(String) "sub", (String) "0011", 2},
+    {(String) "lea", (String) "0100", 2},
+    {(String) "clr", (String) "0101", 1},
+    {(String) "not", (String) "0110", 1},
+    {(String) "inc", (String) "0111", 1},
+    {(String) "dec", (String) "1000", 1},
+    {(String) "jmp", (String) "1001", 1},
+    {(String) "bne", (String) "1010", 1},
+    {(String) "red", (String) "1011", 1},
+    {(String) "prn", (String) "1100", 1},
+    {(String) "jsr", (String) "1101", 1},
+    {(String) "rts", (String) "1110", 0},
+    {(String) "stop", (String) "1111", 0}};
 
 /**
  * Get the number of operands for a given opcode
@@ -20,35 +29,18 @@ static String opcodes[OPCODES_NUM] = {
  * @param word The opcode to check
  *
  * @returns - amount of required operands, -1 if not a valid opcode
- * @throw EXIT_FAILURE if the opcode does not define amount of operands
  */
 static int get_operands_number_per_opcode(String word) {
-    int opcode_index = is_command(trim_string(word));
+    OpcodeBinary* opcode = get_command(trim_string(word));
 
     /**
      * Not a command
      */
-    if (opcode_index == -1) {
+    if (opcode == NULL) {
         return -1;
     }
 
-    /**
-     * Determine the number of operands the opcode can receive
-     */
-    if (opcode_index >= 0 && opcode_index <= 4) {
-        return 2;
-    }
-
-    if (opcode_index >= 5 && opcode_index <= 13) {
-        return 1;
-    }
-
-    if (opcode_index >= 14 && opcode_index <= 15) {
-        return 0;
-    }
-
-    printf("Error: operand %s does not have operands defined!\n", word);
-    exit(EXIT_FAILURE);
+    return opcode->operands;
 }
 
 /**
@@ -56,22 +48,22 @@ static int get_operands_number_per_opcode(String word) {
  *
  * @param word The token to check
  *
- * @returns the command index, or -1 if the token is not a command
+ * @returns a pointer to the opcode if it exists, otherwise NULL
  */
-int is_command(String word) {
+OpcodeBinary* get_command(String word) {
     int i;
     int length = strlen(word);
     if (length > MAX_COMMAND_LENGTH || length < MIN_COMMAND_LENGTH) {
-        return -1;
+        return NULL;
     }
 
     for (i = 0; i < OPCODES_NUM; i++) {
-        if (strcmp(word, opcodes[i]) == 0) {
-            return i;
+        if (strcmp(word, *opcodes[i].opcode) == 0) {
+            return &opcodes[i];
         }
     }
 
-    return -1;
+    return NULL;
 }
 
 /**
