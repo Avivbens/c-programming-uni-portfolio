@@ -1,5 +1,6 @@
 #include "../../cli/cli-parser.h"
 #include "../../common/command.h"
+#include "../../common/comment.h"
 #include "../../common/register.h"
 #include "../../constants/constants.h"
 #include "../../data/macros-data.h"

@@ -148,8 +148,12 @@ static int generate_file_output(String file_path) {
      */
     while (fgets(line, sizeof(line), file)) {
         line_number++;
-        line_label_type = is_label(line);
 
+        if (is_comment(line)) {
+            continue;
+        }
+
+        line_label_type = is_label(line);
         if (filter_line(line, line_label_type) == 0) {
             continue;
         }

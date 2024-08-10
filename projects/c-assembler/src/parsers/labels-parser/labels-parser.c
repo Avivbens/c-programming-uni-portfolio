@@ -362,6 +362,10 @@ static int label_registration(String file_path) {
      */
     while (fgets(line, sizeof(line), file)) {
         line_number++;
+        if (is_comment(line)) {
+            continue;
+        }
+
         label_type = is_label(trim_string(line));
 
         if (label_type == LABEL_STRING || label_type == LABEL_DATA ||
