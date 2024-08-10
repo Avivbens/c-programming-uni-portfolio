@@ -103,6 +103,9 @@ void verify_files_exists(String *files) {
             fprintf(stderr, "Error: File %s does not exist\n", files[i]);
             error = EXIT_FAILURE;
         }
+
+        free(file_path);
+        file_path = NULL;
     }
 
     if (error != EXIT_SUCCESS) {

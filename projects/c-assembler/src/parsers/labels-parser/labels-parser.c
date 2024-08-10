@@ -168,8 +168,8 @@ static int is_label_name_allowed(String name) {
  */
 LabelType is_label(String line) {
     LabelType label_type = get_label_type(line);
-    String label_name;
-    String helper;
+    String label_name = NULL;
+    String helper = NULL;
 
     if (label_type == NOT_LABEL) {
         return NOT_LABEL;
@@ -182,8 +182,14 @@ LabelType is_label(String line) {
         label_name = get_word(line, 1);
 
         if (!is_label_name_allowed(label_name)) {
+            free(label_name);
+            label_name = NULL;
+
             return LABEL_VIOLATION;
         }
+
+        free(label_name);
+        label_name = NULL;
 
         return label_type;
     }
@@ -194,13 +200,25 @@ LabelType is_label(String line) {
      */
     label_name = get_word(line, 0);
     if (!ends_with(label_name, (String) ":")) {
+        free(label_name);
+        label_name = NULL;
+
         return NOT_LABEL;
     }
 
-    helper = replace_substring(strdup(label_name), (String) ":", (String) "");
+    helper = replace_substring(label_name, (String) ":", (String) "");
+    free(label_name);
+    label_name = NULL;
+
     if (!is_label_name_allowed(helper)) {
+        free(helper);
+        helper = NULL;
+
         return LABEL_VIOLATION;
     }
+
+    free(helper);
+    helper = NULL;
 
     return label_type;
 }
@@ -216,24 +234,60 @@ static int update_exit_code(int exit_code, int new_code) {
 static int handle_no_type_label_reg(String line, int line_number) {
     String opcode = get_word(line, 1);
     String rest = substring_words(line, 2);
-    String label =
-        replace_substring(strdup(get_word(line, 0)), (String) ":", (String) "");
-    int helper;
 
-    String *operands;
+    /**
+     * -----------------------
+     * Extract the label name
+     * -----------------------
+     */
+    String label_raw = get_word(line, 0);
+    String label = replace_substring(label_raw, (String) ":", (String) "");
+
+    String helper_str;
+    int helper_int;
+
+    String *operands = NULL;
     int operands_amount = 0;
     OpcodeCheck res;
 
-    rest = trim_string(rest);
+    free(label_raw);
+    label_raw = NULL;
 
-    operands = split_string(rest, (String) ",");
-    operands_amount = get_array_length(operands, sizeof(String));
+    /**
+     * ---------------------
+     * Clean the rest string
+     * ---------------------
+     */
+    helper_str = trim_string(rest);
+    free(rest);
+    rest = NULL;
+
+    rest = helper_str;
+    helper_str = NULL;
+
+    /**
+     * ---------------------
+     * Extract the operands
+     * ---------------------
+     */
+    if (rest != NULL) {
+        operands = split_string(rest, (String) ",");
+        operands_amount = get_string_array_length(operands, sizeof(String));
+    } else {
+        operands_amount = 0;
+    }
 
     res = validate_opcode_operand(opcode, operands_amount);
 
     if (res == NOT_EXISTS) {
         printf("line: %d, Error: Opcode '%s' not exists! \n", line_number,
                opcode);
+
+        free(opcode);
+        opcode = NULL;
+
+        free(label);
+        label = NULL;
 
         return EXIT_FAILURE;
     }
@@ -242,91 +296,245 @@ static int handle_no_type_label_reg(String line, int line_number) {
         printf("line: %d, Error: Opcode '%s' can not accept %d operands \n",
                line_number, opcode, operands_amount);
 
+        free(opcode);
+        opcode = NULL;
+
+        free(label);
+        label = NULL;
+
         return EXIT_FAILURE;
     }
 
-    helper = add_label(label, NOT_LABEL_TYPE,
-                       get_instruction_counter(operands_amount + 1));
-    if (helper != EXIT_SUCCESS) {
+    free(opcode);
+    opcode = NULL;
+
+    /**
+     * ---------------------
+     * Add the label
+     * ---------------------
+     */
+    helper_int = add_label(label, NOT_LABEL_TYPE,
+                           get_instruction_counter(operands_amount + 1));
+    if (helper_int != EXIT_SUCCESS) {
         printf("Error: label '%s' can not be added to symbols table\n", label);
+
+        free(label);
+        label = NULL;
         return EXIT_FAILURE;
     }
+
+    free(label);
+    label = NULL;
 
     return EXIT_SUCCESS;
 }
 
+/**
+ * Handle the registration of a data label
+ *
+ * @param line - the line to handle
+ * @param line_number - the line number
+ *
+ * @throw In case of an error, it would return EXIT_FAILURE
+ * @returns EXIT_SUCCESS if the entry label was registered successfully
+ */
 static int handle_data_label_reg(String line, int line_number) {
     String rest = substring_words(line, 2);
-    String label =
-        replace_substring(strdup(get_word(line, 0)), (String) ":", (String) "");
-    int helper;
+
+    /**
+     * -----------------------
+     * Extract the label name
+     * -----------------------
+     */
+    String label_raw = get_word(line, 0);
+    String label = replace_substring(label_raw, (String) ":", (String) "");
+
+    String helper_str;
+    int helper_int;
+
     int i;
 
-    String *numbers;
+    String *numbers = NULL;
     int numbers_amount = 0;
 
-    rest = trim_string(rest);
+    free(label_raw);
+    label_raw = NULL;
 
+    /**
+     * ---------------------
+     * Clean the rest string
+     * ---------------------
+     */
+    helper_str = trim_string(rest);
+    free(rest);
+    rest = NULL;
+
+    rest = helper_str;
+    helper_str = NULL;
+
+    /**
+     * ---------------------
+     * Extract the numbers
+     * ---------------------
+     */
     numbers = split_string(rest, (String) ",");
-    numbers_amount = get_array_length(numbers, sizeof(String));
+    numbers_amount = get_string_array_length(numbers, sizeof(String));
 
     for (i = 0; i < numbers_amount; i++) {
-        if (!is_number(trim_string(numbers[i]))) {
+        helper_str = trim_string(numbers[i]);
+        if (!is_number(helper_str)) {
             printf("line: %d, Error: '%s' is not a valid number\n", line_number,
                    numbers[i]);
+
+            free(label);
+            label = NULL;
+
+            free(helper_str);
+            helper_str = NULL;
+
             return EXIT_FAILURE;
         }
+
+        free(helper_str);
+        helper_str = NULL;
     }
 
-    helper = add_label(label, LABEL_DATA, get_data_counter(numbers_amount));
-    if (helper != 0) {
+    /**
+     * ---------------------
+     * Add the label
+     * ---------------------
+     */
+    helper_int = add_label(label, LABEL_DATA, get_data_counter(numbers_amount));
+    if (helper_int != 0) {
         printf(
             "line: %d, Error: label '%s' can not be added to symbols table\n",
             line_number, label);
+
+        free(label);
+        label = NULL;
+
         return EXIT_FAILURE;
     }
+
+    free(label);
+    label = NULL;
 
     return EXIT_SUCCESS;
 }
 
+/**
+ * Handle the registration of an entry label
+ *
+ * @param line - the line to handle
+ * @param line_number - the line number
+ *
+ * @throw In case of an error, it would return EXIT_FAILURE
+ * @returns EXIT_SUCCESS if the entry label was registered successfully
+ */
 static int handle_entry_label_reg(String line, int line_number) {
     String opcode = get_word(line, 1);
     String rest = substring_words(line, 2);
-    String label =
-        replace_substring(strdup(get_word(line, 0)), (String) ":", (String) "");
-    int helper;
+
+    /**
+     * -----------------------
+     * Extract the label name
+     * -----------------------
+     */
+    String label_raw = get_word(line, 0);
+    String label = replace_substring(label_raw, (String) ":", (String) "");
+
+    String helper_str;
+    int helper_int;
 
     String *operands;
     int operands_amount = 0;
     OpcodeCheck res;
 
-    rest = trim_string(rest);
+    free(label_raw);
+    label_raw = NULL;
 
+    /**
+     * ---------------------
+     * Clean the rest string
+     * ---------------------
+     */
+    helper_str = trim_string(rest);
+    free(rest);
+    rest = helper_str;
+
+    /**
+     * ---------------------
+     * Extract the operands
+     * ---------------------
+     */
     operands = split_string(rest, (String) ",");
-    operands_amount = get_array_length(operands, sizeof(String));
+    operands_amount = get_string_array_length(operands, sizeof(String));
 
+    free_string_array_recursively(operands, operands_amount);
+    operands = NULL;
+
+    free(rest);
+    rest = NULL;
+
+    /**
+     * ---------------------
+     * Case: Opcode not exists
+     * ---------------------
+     */
     res = validate_opcode_operand(opcode, operands_amount);
-
     if (res == NOT_EXISTS) {
         printf("line: %d, Error: Opcode '%s' not exists! \n", line_number,
                opcode);
 
+        free(label);
+        label = NULL;
+
+        free(opcode);
+        opcode = NULL;
+
         return EXIT_FAILURE;
     }
 
+    /**
+     * ---------------------
+     * Case: Invalid operands
+     * ---------------------
+     */
     if (res == INVALID_OPERANDS) {
         printf("line: %d, Error: Opcode '%s' can not accept %d operands \n",
                line_number, opcode, operands_amount);
 
+        free(label);
+        label = NULL;
+
+        free(opcode);
+        opcode = NULL;
+
         return EXIT_FAILURE;
     }
 
-    helper = add_label(label, LABEL_ENTRY,
-                       get_instruction_counter(operands_amount + 1));
-    if (helper != 0) {
+    free(opcode);
+    opcode = NULL;
+
+    /**
+     * ---------------------
+     * Case: global label error
+     * ---------------------
+     */
+    helper_int = add_label(label, LABEL_ENTRY,
+                           get_instruction_counter(operands_amount + 1));
+
+    if (helper_int != 0) {
         printf("Error: label '%s' can not be added to symbols table\n", label);
+
+        free(label);
+        label = NULL;
+
         return EXIT_FAILURE;
     }
+
+    free(label);
+    label = NULL;
 
     return EXIT_SUCCESS;
 }
@@ -350,6 +558,7 @@ static int label_registration(String file_path) {
     String word;
     String helper;
     int res;
+    int flag;
 
     file = fopen(file_path, "r");
     if (file == NULL) {
@@ -366,17 +575,23 @@ static int label_registration(String file_path) {
             continue;
         }
 
-        label_type = is_label(trim_string(line));
+        helper = trim_string(line);
+        label_type = is_label(helper);
+
+        free(helper);
+        helper = NULL;
 
         if (label_type == LABEL_STRING || label_type == LABEL_DATA ||
             label_type == NOT_LABEL_TYPE) {
+            flag = 0;
             word = get_word(line, 1);
+
             if (strcmp(word, LABEL_EXTERN_PREFIX) == 0) {
                 printf(
                     "line: %d, WARNING: A label defined at the beginning of "
                     "the extern line is invalid\n ",
                     line_number);
-                continue;
+                flag = 1;
             }
 
             if (strcmp(word, LABEL_ENTRY_PREFIX) == 0) {
@@ -384,6 +599,13 @@ static int label_registration(String file_path) {
                     "line: %d, WARNING: A label defined at the beginning of "
                     "the entry line is invalid\n",
                     line_number);
+                flag = 1;
+            }
+
+            free(word);
+            word = NULL;
+
+            if (flag) {
                 continue;
             }
         }
@@ -404,9 +626,13 @@ static int label_registration(String file_path) {
                 continue;
 
             case LABEL_EXTERN:
-                res = add_label(get_word(line, 1), LABEL_EXTERN,
-                                get_instruction_counter(0));
+                helper = get_word(line, 1);
+                res =
+                    add_label(helper, LABEL_EXTERN, get_instruction_counter(0));
                 exit_code = update_exit_code(exit_code, res);
+
+                free(helper);
+                helper = NULL;
                 continue;
 
             case LABEL_ENTRY:
@@ -421,7 +647,12 @@ static int label_registration(String file_path) {
                 continue;
 
             case LABEL_STRING:
-                res = is_valid_string(substring_words(line, 2));
+                helper = substring_words(line, 2);
+                res = is_valid_string(helper);
+
+                free(helper);
+                helper = NULL;
+
                 if (res != 1) {
                     printf(
                         "Error: invalid String, can not add label to symbols "
@@ -429,12 +660,21 @@ static int label_registration(String file_path) {
                     continue;
                 }
 
-                word = replace_substring(get_word(line, 0), (String) ":",
-                                         (String) "");
-                helper = get_word(line, 2);
+                /* Get label name */
+                helper = get_word(line, 0);
+                word = replace_substring(helper, (String) ":", (String) "");
 
+                free(helper);
+                helper = NULL;
+
+                /* Get string value */
+                helper = get_word(line, 2);
                 res = add_label(word, LABEL_STRING,
                                 get_data_counter(strlen(helper) - 2 + 1));
+
+                free(helper);
+                helper = NULL;
+
                 exit_code = update_exit_code(exit_code, res);
                 continue;
         }

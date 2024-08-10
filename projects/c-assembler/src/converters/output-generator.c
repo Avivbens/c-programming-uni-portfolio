@@ -36,15 +36,18 @@ static int filter_line(String line, LabelType label_type) {
  * @note if the line is a label, the opcode is the second word
  */
 static String extract_opcode(String line, LabelType label_type) {
-    String opcode;
+    String opcode = NULL;
+    String helper = NULL;
 
-    if (label_type == NOT_LABEL) {
-        opcode = get_word(line, 0);
-        return trim_string(opcode);
-    }
+    int fixed_index = label_type == NOT_LABEL ? 0 : 1;
 
-    opcode = get_word(line, 1);
-    return trim_string(opcode);
+    helper = get_word(line, fixed_index);
+    opcode = trim_string(helper);
+
+    free(helper);
+    helper = NULL;
+
+    return opcode;
 }
 
 /**
@@ -66,9 +69,11 @@ static String extract_operand(String line, LabelType label_type,
     String operands_string = substring_words(line, operands_prefix);
 
     operands = split_string(operands_string, (String) ",");
-    operand = operands[operand_index];
 
-    return trim_string(operand);
+    operand = operands[operand_index];
+    operand = trim_string(operand);
+
+    return operand;
 }
 
 /**
@@ -131,15 +136,15 @@ static int generate_file_output(String file_path) {
     int operand_count;
     int i;
 
-    String opcode;
+    String opcode = NULL;
+    String operand = NULL;
     String opcode_binary;
-    String operand;
     LabelType line_label_type;
     AddressMode address_mode;
 
     String helper;
 
-    String line_res;
+    String line_res = NULL;
 
     file = fopen(file_path, "r");
     if (file == NULL) {
@@ -179,7 +184,6 @@ static int generate_file_output(String file_path) {
                    opcode);
             exit_code = EXIT_FAILURE;
             continue;
-            ;
         }
 
         strcat(line_res, opcode_binary);
