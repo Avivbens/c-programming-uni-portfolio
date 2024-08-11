@@ -8,6 +8,8 @@
 /**
  * Extracts the first word from a given line.
  *
+ * @attention - free this memory after use
+ *
  * @param line The input line from which to extract the first word.
  * @returns A dynamically allocated string containing the first word of the
  * line, or NULL if the line is empty or starts with a space.
@@ -41,6 +43,8 @@ static String get_first_word_from_line(String line) {
 /**
  * Pad a string to the left with a given character
  *
+ * @attention - free this memory after use
+ *
  * @param str The string to pad
  * @param length The length to pad the string to
  * @param padding The character to pad the string with
@@ -70,6 +74,8 @@ String pad_left(String str, int length, char padding) {
 
 /**
  * Extracts string from a given position by words
+ *
+ * @attention - free this memory after use
  *
  * @param line The input line from which to extract the word
  * @param word_number The position of the word to extract
@@ -118,6 +124,8 @@ String substring_words(String line, int word_number) {
 /**
  * Replace a substring with another substring
  *
+ * @attention - free this memory after use
+ *
  * @param original The original string
  * @param to_replace The substring to replace
  * @param replacement The substring to replace with
@@ -127,70 +135,76 @@ String substring_words(String line, int word_number) {
  */
 String replace_substring(String original, String to_replace,
                          String replacement) {
-    String temp = original;
+    String temp = strdup(original);
     int count = 0;
-    int toReplaceLen = strlen(to_replace);
-    int replacementLen = strlen(replacement);
-    int newStrLen;
+    int to_replace_len = strlen(to_replace);
+    int replacement_len = strlen(replacement);
+    int new_str_len;
 
-    String newStr;
-    String helperPtr;
+    String new_str;
+    String helper_ptr;
 
     /* Count occurrences of the substring to replace */
     while ((temp = strstr(temp, to_replace))) {
         count++;
-        temp += toReplaceLen;
+        temp += to_replace_len;
     }
 
     /* Allocate memory for the new string */
-    newStrLen = strlen(original) + (replacementLen - toReplaceLen) * count + 1;
-    newStr = (String)malloc(newStrLen);
+    new_str_len =
+        strlen(original) + (replacement_len - to_replace_len) * count + 1;
+    new_str = (String)malloc(new_str_len);
 
-    if (!newStr) {
+    if (!new_str) {
         printf(
-            "Error(replace_substring): Could not allocate `newStr` memory\n");
+            "Error(replace_substring): Could not allocate `new_str` memory\n");
         return NULL;
     }
 
-    helperPtr = newStr;
+    helper_ptr = new_str;
     while (*original) {
         /* If the substring matches, replace it */
         if (strstr(original, to_replace) == original) {
-            memcpy(helperPtr, replacement, replacementLen);
-            helperPtr += replacementLen;
-            original += toReplaceLen;
+            memcpy(helper_ptr, replacement, replacement_len);
+            helper_ptr += replacement_len;
+            original += to_replace_len;
         } else {
-            *helperPtr++ = *original++;
+            *helper_ptr++ = *original++;
         }
     }
 
     /* Null-terminate the new string */
-    *helperPtr = '\0';
+    *helper_ptr = '\0';
 
-    return newStr;
+    return new_str;
 }
 
 /**
  * Trim leading and trailing spaces from a string
  *
+ * @attention - free this memory after use
+ *
  * @param str The string to trim
  *
- * @returns The trimmed string
+ * @returns A new trimmed string
  */
 String trim_string(String str) {
+    String new_str;
     String end;
 
     if (str == NULL) {
         return NULL;
     }
 
+    new_str = (String)malloc(strlen(str) + 1);
+    if (new_str == NULL) {
+        printf("Error(trim_string): Could not allocate memory\n");
+        exit(EXIT_FAILURE);
+    }
+
     /* Trim leading space */
     while (isspace((unsigned char)*str)) {
         str++;
-    }
-
-    if (*str == '\0') {
-        return str;
     }
 
     /* Trim trailing space */
@@ -199,14 +213,17 @@ String trim_string(String str) {
         end--;
     }
 
-    /* Write new null terminator */
-    *(end + 1) = '\0';
+    /* Put new string into the new_str */
+    strncpy(new_str, str, end - str + 1);
+    new_str[end - str + 1] = '\0';
 
-    return str;
+    return new_str;
 }
 
 /**
  * Get a word in a line based on its position
+ *
+ * @attention - free this memory after use
  *
  * @param line The input line from which to extract the word
  * @param word_number The position of the word to extract
@@ -283,6 +300,8 @@ int ends_with(String str, String suffix) {
 /**
  * Remove the quotation marks from a string
  *
+ * @attention - free this memory after use
+ *
  * @param origin The string to remove the quotation marks from
  * @returns A string without the quotation marks
  */
@@ -316,6 +335,8 @@ String remove_quotation(String origin) {
 /**
  * Split a string into tokens based on a delimiter
  *
+ * @attention - free this memory after use (array and each element)
+ *
  * @param line The string to split
  * @param delimiter The delimiter to split the string by
  *
@@ -338,18 +359,14 @@ String* split_string(String line, String delimiter) {
         i++;
     }
 
-    tokens = (String*)realloc(tokens, sizeof(String) * (i + 1));
-    if (tokens == NULL) {
-        printf("Error(split_string): failed to allocate memory\n");
-        exit(EXIT_FAILURE);
-    }
-
-    tokens[i] = NULL;
+    tokens[i] = (String)'\0';
     return tokens;
 }
 
 /**
  * Cast a decimal number to a binary string
+ *
+ * @attention - free this memory after use
  *
  * @param number The decimal number to cast to binary
  *
