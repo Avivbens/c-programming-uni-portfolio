@@ -36,4 +36,6 @@ Label *get_label(String name);
 int has_label(String name);
 LinkedList *get_labels_list(void);
 
+void debug_labels(void);
+
 #endif

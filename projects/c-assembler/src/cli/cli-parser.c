@@ -8,6 +8,8 @@
 /**
  * Get the files names from the command line arguments
  * File names are not include the file extension
+ *
+ * @attention - free this memory after use (array and each element)
  */
 String *get_files_names(int argc, String *argv) {
     String *files = (String *)malloc(argc * sizeof(String));
@@ -36,6 +38,8 @@ String *get_files_names(int argc, String *argv) {
 
 /**
  * Get the file name with the original source file extension
+ *
+ * @attention - free this memory after use
  */
 String get_file_name_with_extension(String file_name, String extension) {
     String file = (String)malloc(MAX_PATH_LENGTH * sizeof(char));
@@ -55,6 +59,8 @@ String get_file_name_with_extension(String file_name, String extension) {
 
 /**
  * Generate the path for the post-processed file
+ *
+ * @attention - free this memory after use
  *
  * @param file_path the original file path
  * @param extension the extension for the post-processed file
@@ -97,6 +103,9 @@ void verify_files_exists(String *files) {
             fprintf(stderr, "Error: File %s does not exist\n", files[i]);
             error = EXIT_FAILURE;
         }
+
+        free(file_path);
+        file_path = NULL;
     }
 
     if (error != EXIT_SUCCESS) {

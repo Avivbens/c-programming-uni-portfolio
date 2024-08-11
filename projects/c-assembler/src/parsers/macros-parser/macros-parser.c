@@ -20,16 +20,18 @@ static int is_close_macro(String line) {
 
 /**
  * Trim the line value and try to match it with a macro name
+ *
+ * @attention - free this memory after use
  */
 static String extract_macro_name(String line) {
-    String copy = strdup(line);
-    String trimmed = trim_string(copy);
-
+    String trimmed = trim_string(line);
     return trimmed;
 }
 
 /**
  * Create a post-processed file based on the registered macros
+ *
+ * @attention - free this memory after use
  *
  * @throw In case of an error, it would return NULL
  * @returns post-processed file path
@@ -64,6 +66,9 @@ static String create_post_processed_file(String file_name) {
         printf("Error: Could not open file %s\n", file_name);
         exit(EXIT_FAILURE);
     }
+
+    free(original_file_path);
+    original_file_path = NULL;
 
     post_processed_file = fopen(post_processed_file_path, "w");
     if (post_processed_file == NULL) {
@@ -103,31 +108,30 @@ static String create_post_processed_file(String file_name) {
          * Replace macros with their values
          */
         macro_name = extract_macro_name(line);
-        if (macro_name == NULL) {
-            printf("Error: Could not allocate memory for macro name\n");
-            exit(EXIT_FAILURE);
-        }
-
-        if (has_macro(macro_name)) {
-            macro_value = get_macro(macro_name);
-
-            if (macro_value == NULL) {
-                printf("Error: Macro %s does not exist\n", macro_name);
-                exit_code = EXIT_FAILURE;
-            }
-
+        if (!has_macro(macro_name)) {
             /**
-             * Write macro value to post-processed file
+             * Write source file line to post-processed file
              */
-            fprintf(post_processed_file, "%s", macro_value);
+            fprintf(post_processed_file, "%s", line);
+            free(macro_name);
+            macro_name = NULL;
 
             continue;
         }
 
+        macro_value = get_macro(macro_name);
+        if (macro_value == NULL) {
+            printf("Error: Macro '%s' does not exist\n", macro_name);
+            exit_code = EXIT_FAILURE;
+        }
+
         /**
-         * Write source file line to post-processed file
+         * Write macro value to post-processed file
          */
-        fprintf(post_processed_file, "%s", line);
+        fprintf(post_processed_file, "%s", macro_value);
+
+        free(macro_name);
+        macro_name = NULL;
     }
 
     fclose(file);
@@ -174,6 +178,9 @@ static int macro_registration(String file_name) {
         return EXIT_FAILURE;
     }
 
+    free(file_path);
+    file_path = NULL;
+
     /**
      * Read file line by line
      */
@@ -185,8 +192,8 @@ static int macro_registration(String file_name) {
             start_macro = 1;
 
             last_space = strrchr(line, ' ');
-            macro_name = replace_substring(strdup(last_space + 1),
-                                           (String) "\n", (String) "");
+            macro_name =
+                replace_substring(last_space + 1, (String) "\n", (String) "");
 
             if (macro_name == NULL) {
                 printf("Error: Could not allocate memory for macro name\n");
@@ -204,6 +211,12 @@ static int macro_registration(String file_name) {
             exit_code_temp = add_macro(macro_name, macro_value);
             exit_code =
                 exit_code_temp == EXIT_FAILURE ? EXIT_FAILURE : exit_code;
+
+            free(macro_name);
+            macro_name = NULL;
+
+            free(macro_value);
+            macro_value = NULL;
 
             continue;
         }
@@ -228,6 +241,12 @@ static int macro_registration(String file_name) {
 
     fclose(file);
 
+    free(macro_name);
+    macro_name = NULL;
+
+    free(macro_value);
+    macro_value = NULL;
+
     return exit_code;
 }
 
@@ -235,6 +254,8 @@ static int macro_registration(String file_name) {
  * Register and create post-processed files
  *
  * @param file_names the original files paths without the file extension
+ *
+ * @attention - free this memory after use (array and each element)
  *
  * @throw In case of an error, it would exit the program with EXIT_FAILURE
  * @returns post-processed files paths

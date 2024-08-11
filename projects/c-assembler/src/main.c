@@ -2,8 +2,10 @@
 #include <stdlib.h>
 
 #include "./cli/cli-parser.h"
+#include "./converters/output-generator.h"
 #include "./parsers/labels-parser/labels-parser.h"
 #include "./parsers/macros-parser/macros-parser.h"
+#include "./utils/array/array.h"
 #include "./utils/file/file.h"
 #include "./utils/string/string.h"
 
@@ -28,6 +30,13 @@ int main(int argc, char *argv[]) {
      * Handle labels - register and add address
      */
     handle_labels(post_processed_files);
-    free(files);
+
+    /**
+     * Create all targeted files
+     */
+    handle_output(post_processed_files);
+
+    free_string_array_recursively(files, argc);
+    free_string_array_recursively(post_processed_files, argc);
     return 0;
 }
