@@ -31,14 +31,21 @@ static OpcodeBinary opcodes[OPCODES_NUM] = {
  * @returns - amount of required operands, -1 if not a valid opcode
  */
 int get_operands_number_per_opcode(String word) {
-    OpcodeBinary* opcode = get_command(trim_string(word));
+    String parsed_word = trim_string(word);
+    OpcodeBinary* opcode = get_command(parsed_word);
 
     /**
      * Not a command
      */
     if (opcode == NULL) {
+        free(parsed_word);
+        parsed_word = NULL;
+
         return -1;
     }
+
+    free(parsed_word);
+    parsed_word = NULL;
 
     return opcode->operands;
 }
