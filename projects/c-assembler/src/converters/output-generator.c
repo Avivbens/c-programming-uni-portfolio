@@ -6,22 +6,20 @@
 #include <string.h>
 
 /**
- * Filter out lines with Label types
+ * The Instruction Counter indicate which output line we're currently on
+ * Starting from 100
  *
- * We only need to create a binary row for not labels / labels without a type
- *
- * @returns 1 if the line should be processed, 0 if it should be skipped
+ * @attention - free this memory after use
  */
-static int filter_line(String line, LabelType label_type) {
-    if (starts_with(trim_string(line), (String) ".data")) {
-        return 0;
-    }
+static String get_instruction_counter(int increment) {
+    static int instruction_counter = IC_OUTPUT_START_POINT;
+    int res = instruction_counter;
+    String str_res;
 
-    if (label_type == NOT_LABEL || label_type == NOT_LABEL_TYPE) {
-        return 1;
-    }
+    instruction_counter += increment;
 
-    return 0;
+    str_res = cast_decimal_to_string(res);
+    return str_res;
 }
 
 /**
@@ -63,6 +61,7 @@ static String extract_opcode(String line, LabelType label_type) {
  */
 static String extract_operand(String line, LabelType label_type,
                               int operand_index) {
+    String helper;
     String operand;
     String *operands;
     int operands_prefix = label_type == NOT_LABEL ? 1 : 2;
@@ -70,8 +69,8 @@ static String extract_operand(String line, LabelType label_type,
 
     operands = split_string(operands_string, (String) ",");
 
-    operand = operands[operand_index];
-    operand = trim_string(operand);
+    helper = operands[operand_index];
+    operand = trim_string(helper);
 
     return operand;
 }
@@ -85,8 +84,9 @@ static String extract_operand(String line, LabelType label_type,
  *
  * @returns the address mode for the operands
  */
-AddressMode get_address_mode(String operand) {
-    operand = trim_string(operand);
+static AddressMode get_address_mode(String raw_operand) {
+    String operand = trim_string(raw_operand);
+    String helper;
 
     if (starts_with(operand, (String) "#")) {
         if (is_number(operand + 1)) {
@@ -103,11 +103,16 @@ AddressMode get_address_mode(String operand) {
         /**
          * Validate the operand is a register
          */
-        if (!is_register(
-                replace_substring(operand, (String) "*", (String) ""))) {
+        helper = replace_substring(operand, (String) "*", (String) "");
+        if (!is_register(helper)) {
+            free(helper);
+            helper = NULL;
+
             return ERROR;
         }
 
+        free(helper);
+        helper = NULL;
         return INDIRECT_ACCUMULATED_ADDRESS_MODE;
     }
 
@@ -126,6 +131,28 @@ AddressMode get_address_mode(String operand) {
     }
 
     return ERROR;
+}
+
+/**
+ * Generate the binary code for the opcode
+ *
+ * @param opcode the opcode to generate the binary code for
+ *
+ * @returns the binary code for the opcode
+ */
+static String get_binary_by_address_mode(AddressMode address_mode) {
+    switch (address_mode) {
+        case IMMEDIATE_ADDRESS_MODE:
+            return (String) "0001";
+        case DIRECT_ADDRESS_MODE:
+            return (String) "0010";
+        case INDIRECT_ACCUMULATED_ADDRESS_MODE:
+            return (String) "0100";
+        case DIRECT_ACCUMULATED_ADDRESS_MODE:
+            return (String) "1000";
+        default:
+            return NULL;
+    }
 }
 
 static int generate_file_output(String file_path) {
@@ -163,11 +190,8 @@ static int generate_file_output(String file_path) {
         }
 
         line_label_type = is_label(line);
-        if (filter_line(line, line_label_type) == 0) {
-            continue;
-        }
-
-        line_res = (String)malloc(MAX_LINE_OUTPUT * sizeof(char));
+        line_res =
+            (String)malloc(MAX_LINE_OUTPUT * MAX_LINE_LENGTH * sizeof(char));
         if (line_res == NULL) {
             printf("Error: Could not allocate memory for line\n");
             exit(EXIT_FAILURE);
@@ -186,7 +210,26 @@ static int generate_file_output(String file_path) {
             continue;
         }
 
-        strcat(line_res, opcode_binary);
+        /**
+         * ---------------------
+         * Insert line number and opcode binary (as octal)
+         * ---------------------
+         */
+        strcat(line_res, get_instruction_counter(1));
+        strcat(line_res, " ");
+
+        helper = cast_binary_to_octal(opcode_binary);
+        strcat(line_res, helper);
+
+        free(helper);
+        helper = NULL;
+
+        /**
+         * TODO - add:
+         * 1 - 4 digits of source operand
+         * 2 - 4 digits of destination operand
+         * 3 - ARE
+         */
 
         /**
          * Handle all the operands
@@ -194,7 +237,8 @@ static int generate_file_output(String file_path) {
         for (i = 0; i < 2; i++) {
             if (i >= operand_count) {
                 /**
-                 * Insert empty data into the results
+                 * Insert empty data into the results, in case there is no
+                 * operand
                  */
 
                 strcat(line_res, "0000");
@@ -204,25 +248,87 @@ static int generate_file_output(String file_path) {
             operand = extract_operand(line, line_label_type, i);
             address_mode = get_address_mode(operand);
 
+            /**
+             * ---------------------
+             * The operand address mode should be:
+             *
+             * 0 - numbers, start with #. We need to cast it to binary. Would be
+             * the entire binary, but the last 3 digits (ARE)
+             *
+             * 1 - labels, show the address of the label (based on the labels
+             * system). Would be the entire binary, but the last 3 digits (ARE)
+             *
+             * 2 - pointer to register, show the register number. Would be the
+             * entire binary, but the last 3 digits (ARE)
+             *
+             * 3 - register, show the `3` in binary. Would be the entire binary,
+             * but the last 3 digits (ARE)
+             *
+             *
+             * These need to be correlated to the operand itself (source /
+             * dest).
+             *
+             * The source should be from 6-8 bits, the dest should be 3-5 bits.
+             * ---------------------
+             */
             if (address_mode == ERROR) {
                 printf("line: %d, Error: Invalid operand - '%s'\n", line_number,
                        operand);
                 exit_code = EXIT_FAILURE;
+
+                free(operand);
+                operand = NULL;
+
                 break;
             }
 
-            helper = (String)malloc(sizeof(char) * 5);
-            if (helper == NULL) {
-                printf("Error: Could not allocate memory for helper\n");
-                exit(EXIT_FAILURE);
+            helper = get_binary_by_address_mode(address_mode);
+            strcat(line_res, helper);
+
+            free(operand);
+            operand = NULL;
+        }
+
+        /**
+         * Handle ARE - this is an opcode
+         */
+        strcat(line_res, "100");
+
+        /* Start creating the new line of the output */
+        strcat(line_res, "\n");
+
+        /**
+         * Handle operands lines
+         */
+        for (i = 0; i < operand_count; i++) {
+            strcat(line_res, get_instruction_counter(1));
+            strcat(line_res, " ");
+
+            /* Inert empty value instead of the opcode */
+            strcat(line_res, "0000");
+
+            operand = extract_operand(line, line_label_type, i);
+            address_mode = get_address_mode(operand);
+
+            if (address_mode == ERROR) {
+                printf("line: %d, Error: Invalid operand - '%s'\n", line_number,
+                       operand);
+                exit_code = EXIT_FAILURE;
+
+                free(operand);
+                operand = NULL;
+
+                break;
             }
 
-            sprintf(helper, "%d", address_mode);
+            helper = cast_decimal_to_binary(address_mode);
+            strcat(line_res, helper);
 
-            /**
-             * TODO - might be able to drop `pad_left`
-             */
-            strcat(line_res, pad_left(cast_to_binary(helper), 4, '0'));
+            free(operand);
+            operand = NULL;
+
+            free(helper);
+            helper = NULL;
         }
     }
 
