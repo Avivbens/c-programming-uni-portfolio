@@ -372,7 +372,7 @@ String* split_string(String line, String delimiter) {
  *
  * @returns A string containing the binary representation of the number
  */
-String cast_to_binary(String number) {
+String cast_decimal_to_binary(String number) {
     int num = atoi(number);
     int i = 0;
     String binary = (String)malloc((32 + 1) * sizeof(char));
@@ -390,4 +390,55 @@ String cast_to_binary(String number) {
     binary[32] = '\0';
 
     return binary;
+}
+
+/**
+ * Cast a binary string to an octal string
+ *
+ * @attention - free this memory after use
+ *
+ * @param binary_form The binary string to cast to octal
+ */
+String cast_binary_to_octal(String binary_form) {
+    int binary_length = strlen(binary_form);
+    int octal_length = binary_length / 3 + (binary_length % 3 != 0);
+    String octal_form = (String)malloc(sizeof(char) * (octal_length + 1));
+    int i, j;
+    int octal_digit;
+
+    if (octal_form == NULL) {
+        printf("Error(cast_to_octal): Could not allocate memory\n");
+        exit(EXIT_FAILURE);
+    }
+
+    for (i = 0; i < octal_length; i++) {
+        octal_digit = 0;
+        for (j = 0; j < 3; j++) {
+            octal_digit <<= 1;
+            octal_digit += binary_form[i * 3 + j] - '0';
+        }
+        octal_form[i] = octal_digit + '0';
+    }
+
+    octal_form[octal_length] = '\0';
+
+    return octal_form;
+}
+
+/**
+ * Cast a decimal number to a string
+ *
+ * @attention - free this memory after use
+ *
+ * @param number The decimal number to cast to a string
+ */
+String cast_decimal_to_string(int number) {
+    char* str = (String)malloc(sizeof(char) * 4);
+    if (str == NULL) {
+        printf("Error(cast_decimal_to_string): Could not allocate memory\n");
+        exit(EXIT_FAILURE);
+    }
+
+    sprintf(str, "%d", number);
+    return str;
 }
