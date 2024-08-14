@@ -7,7 +7,7 @@ LOOP:   prn #48
         lea STR, r6
         inc r6
         mov *r6,K
-        sub r1,14
+        sub r1, r4
         m_macr
         dec K
         jmp LOOP
