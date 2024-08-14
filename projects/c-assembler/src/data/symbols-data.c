@@ -9,7 +9,6 @@
 static void print_label(void* data) {
     Label* label = (Label*)data;
 
-    printf("Name: %s\n", label->name);
     printf("Is Defined: %d\n", label->is_defined);
     printf("Memory address: %d\n", label->memory_address);
 
@@ -56,7 +55,6 @@ int add_label(String name, LabelType type, int memory_address) {
             return EXIT_FAILURE;
         }
 
-        new_label->name = name;
         new_label->memory_address = should_not_define ? 0 : memory_address;
         new_label->is_defined = should_not_define ? 0 : 1;
 

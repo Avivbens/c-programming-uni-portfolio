@@ -17,7 +17,6 @@ typedef enum {
 } LabelType;
 
 typedef struct Label {
-    String name;
     int memory_address;
     int is_defined;
     int has_extern;
