@@ -12,5 +12,8 @@ int is_comment(String line) {
     String trimmed = trim_string(line);
     int is_comment = trimmed[0] == ';';
 
+    free(trimmed);
+    trimmed = NULL;
+
     return is_comment;
 }
