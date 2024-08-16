@@ -201,6 +201,8 @@ static int handle_opcode(int line_number, String line_res, String opcode) {
  * @param opcode the opcode
  * @param label_type the label type
  *
+ * @throw EXIT_FAILURE if the operand is invalid
+ * @returns EXIT_SUCCESS if the operand is valid
  *
  * @note
  * This function handle just the first line (the opcode output line)
@@ -269,22 +271,157 @@ static int handle_opcode_operands(int line_number, String line_res, String line,
     return EXIT_SUCCESS;
 }
 
+/**
+ * Handle operand that is a number
+ *
+ * @param line_number the line number
+ * @param operand the operand to handle
+ *
+ * @returns NULL if the operand is valid, otherwise the new line binary
+ */
+static String handle_number_operand(int line_number, String operand) {
+    String helper1;
+    String helper2;
+    String binary;
+
+    helper1 = replace_substring(operand, (String) "#", (String) "");
+    helper2 = trim_string(helper1);
+    binary = cast_decimal_to_binary(helper2);
+
+    free(helper1);
+    free(helper2);
+    helper1 = NULL;
+    helper2 = NULL;
+
+    if (binary == NULL) {
+        printf("line: %d, Error: Invalid number - '%s'\n", line_number,
+               operand);
+
+        return NULL;
+    }
+
+    /* Insert ARE for number - 100 */
+    strcat(binary, "100");
+    return binary;
+}
+
+/**
+ * Generate the binary code for all operands
+ *
+ * @param line_number the line number
+ * @param line_res the result line
+ * @param line the line to generate the binary code for
+ * @param opcode the opcode
+ * @param label_type the label type
+ *
+ * @throw EXIT_FAILURE if the operand is invalid
+ * @returns EXIT_SUCCESS if the operand is valid
+ *
+ * @note
+ * This function handles the additional lines (0-2 additional)
+ */
+static int handle_operands_output(int line_number, String line_res, String line,
+                                  String opcode, LabelType label_type) {
+    int operand_count = get_operands_number_per_opcode(opcode);
+    String operand;
+    AddressMode address_mode;
+    int exit_code = EXIT_SUCCESS;
+
+    String rest_line_res;
+    String helper;
+
+    /**
+     * TODO - handle case when both operands are registers
+     */
+
+    int i;
+    for (i = 0; i < operand_count; i++) {
+        strcat(line_res, get_instruction_counter(1));
+        strcat(line_res, " ");
+
+        operand = extract_operand(line, label_type, i);
+        address_mode = get_address_mode(operand);
+        /**
+         * ---------------------
+         * The operand address mode should be:
+         *
+         * 0 - numbers, start with #. We need to cast it to binary. Would be
+         * the entire binary, but the last 3 digits (ARE)
+         *
+         * 1 - labels, show the address of the label (based on the labels
+         * system). Would be the entire binary, but the last 3 digits (ARE)
+         *
+         * 2 - pointer to register, show the register number. Would be the
+         * entire binary, but the last 3 digits (ARE)
+         *
+         * 3 - register, show the number of the register. Would be the
+         * entire binary, but the last 3 digits (ARE)
+         *
+         *
+         * These need to be correlated to the operand itself (source /
+         * dest).
+         *
+         *
+         * In case the 2 operands are registers/pointers to registers, they
+         * would be translated into one line.
+         *
+         * The source should be from 6-8 bits, the dest should be 3-5 bits.
+         * ---------------------
+         */
+
+        switch (address_mode) {
+            case ERROR:
+                printf("line: %d, Error: Invalid operand - '%s'\n", line_number,
+                       operand);
+
+                free(operand);
+                operand = NULL;
+
+                exit_code = EXIT_FAILURE;
+                break;
+
+                /* Number */
+            case IMMEDIATE_ADDRESS_MODE:
+                /**
+                 * Cast the number to binary
+                 */
+                rest_line_res = handle_number_operand(line_number, operand);
+                if (rest_line_res == NULL) {
+                    exit_code = EXIT_FAILURE;
+
+                    free(operand);
+                    operand = NULL;
+                    break;
+                }
+
+                helper = cast_binary_to_octal(rest_line_res);
+                strcat(line_res, helper);
+
+                free(helper);
+                helper = NULL;
+
+                free(operand);
+                operand = NULL;
+
+                break;
+        }
+
+        free(operand);
+        operand = NULL;
+
+        return exit_code;
+    }
+}
+
 static int generate_file_output(String file_path) {
     FILE *file;
     int exit_code = EXIT_SUCCESS;
     int updated_exit_code;
     char line[MAX_LINE_LENGTH];
     int line_number = 0;
-    int operand_count;
-    int i;
 
     String opcode = NULL;
-    String operand = NULL;
-    String opcode_binary;
     LabelType line_label_type;
-    AddressMode address_mode;
-
-    String helper;
 
     String line_res = NULL;
 
@@ -347,9 +484,7 @@ static int generate_file_output(String file_path) {
             continue;
         }
 
-        /**
-         * Handle ARE - opcode output line is always 100
-         */
+        /* Handle ARE - opcode output line is always 100 */
         strcat(line_res, "100");
 
         /* Start creating the new line of the output */
@@ -357,65 +492,9 @@ static int generate_file_output(String file_path) {
 
         /**
          * ---------------------
-         * The operand address mode should be:
-         *
-         * 0 - numbers, start with #. We need to cast it to binary. Would be
-         * the entire binary, but the last 3 digits (ARE)
-         *
-         * 1 - labels, show the address of the label (based on the labels
-         * system). Would be the entire binary, but the last 3 digits (ARE)
-         *
-         * 2 - pointer to register, show the register number. Would be the
-         * entire binary, but the last 3 digits (ARE)
-         *
-         * 3 - register, show the number of the register. Would be the
-         * entire binary, but the last 3 digits (ARE)
-         *
-         *
-         * These need to be correlated to the operand itself (source /
-         * dest).
-         *
-         *
-         * In case the 2 operands are registers/pointers to registers, they
-         * would be translated into one line.
-         *
-         * The source should be from 6-8 bits, the dest should be 3-5 bits.
+         * Handle output per operand
          * ---------------------
          */
-
-        /**
-         * Handle operands lines
-         */
-        for (i = 0; i < operand_count; i++) {
-            strcat(line_res, get_instruction_counter(1));
-            strcat(line_res, " ");
-
-            /* Inert empty value instead of the opcode */
-            strcat(line_res, "0000");
-
-            operand = extract_operand(line, line_label_type, i);
-            address_mode = get_address_mode(operand);
-
-            if (address_mode == ERROR) {
-                printf("line: %d, Error: Invalid operand - '%s'\n", line_number,
-                       operand);
-                exit_code = EXIT_FAILURE;
-
-                free(operand);
-                operand = NULL;
-
-                break;
-            }
-
-            helper = cast_decimal_to_binary(address_mode);
-            strcat(line_res, helper);
-
-            free(operand);
-            operand = NULL;
-
-            free(helper);
-            helper = NULL;
-        }
     }
 
     return exit_code;
