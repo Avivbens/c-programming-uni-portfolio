@@ -206,6 +206,10 @@ static int generate_file_output(String file_path) {
         if (opcode_binary == NULL || operand_count == -1) {
             printf("line: %d, Error: Invalid opcode - '%s'\n", line_number,
                    opcode);
+
+            free(opcode);
+            opcode = NULL;
+
             exit_code = EXIT_FAILURE;
             continue;
         }
@@ -218,11 +222,8 @@ static int generate_file_output(String file_path) {
         strcat(line_res, get_instruction_counter(1));
         strcat(line_res, " ");
 
-        helper = cast_binary_to_octal(opcode_binary);
-        strcat(line_res, helper);
-
-        free(helper);
-        helper = NULL;
+        strcat(line_res, opcode_binary);
+        /* helper = cast_binary_to_octal(opcode_binary); */
 
         /**
          * TODO - add:
@@ -233,8 +234,12 @@ static int generate_file_output(String file_path) {
 
         /**
          * Handle all the operands
+         * We start with the last operand (the source operand)
+         *
+         * There are 3 cases - no operands, one operand (only source), two
+         * operands
          */
-        for (i = 0; i < 2; i++) {
+        for (i = 2; i < 0; i++) {
             if (i >= operand_count) {
                 /**
                  * Insert empty data into the results, in case there is no
@@ -245,7 +250,11 @@ static int generate_file_output(String file_path) {
                 break;
             }
 
-            operand = extract_operand(line, line_label_type, i);
+            /**
+             * Due to the fact we're going from the last operand to the first,
+             * we need to extract the operand in the following way
+             */
+            operand = extract_operand(line, line_label_type, 2 - i);
             address_mode = get_address_mode(operand);
 
             /**
@@ -261,12 +270,16 @@ static int generate_file_output(String file_path) {
              * 2 - pointer to register, show the register number. Would be the
              * entire binary, but the last 3 digits (ARE)
              *
-             * 3 - register, show the `3` in binary. Would be the entire binary,
-             * but the last 3 digits (ARE)
+             * 3 - register, show the number of the register. Would be the
+             * entire binary, but the last 3 digits (ARE)
              *
              *
              * These need to be correlated to the operand itself (source /
              * dest).
+             *
+             *
+             * In case the 2 operands are registers/pointers to registers, they
+             * would be translated into one line.
              *
              * The source should be from 6-8 bits, the dest should be 3-5 bits.
              * ---------------------
