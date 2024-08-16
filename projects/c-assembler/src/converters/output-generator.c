@@ -49,6 +49,39 @@ static String extract_opcode(String line, LabelType label_type) {
 }
 
 /**
+ * Update the exit code if needed
+ */
+static int update_exit_code(int exit_code, int new_code) {
+    if (exit_code == EXIT_FAILURE) {
+        return EXIT_FAILURE;
+    }
+
+    return new_code;
+}
+
+/**
+ * Generate the binary code for the opcode
+ *
+ * @param opcode the opcode to generate the binary code for
+ *
+ * @returns the binary code for the opcode
+ */
+static String get_binary_by_address_mode(AddressMode address_mode) {
+    switch (address_mode) {
+        case IMMEDIATE_ADDRESS_MODE:
+            return (String) "0001";
+        case DIRECT_ADDRESS_MODE:
+            return (String) "0010";
+        case INDIRECT_ACCUMULATED_ADDRESS_MODE:
+            return (String) "0100";
+        case DIRECT_ACCUMULATED_ADDRESS_MODE:
+            return (String) "1000";
+        default:
+            return NULL;
+    }
+}
+
+/**
  * Extract the operand from a line
  *
  * @attention - free this memory after use
@@ -134,30 +167,112 @@ static AddressMode get_address_mode(String raw_operand) {
 }
 
 /**
- * Generate the binary code for the opcode
- *
- * @param opcode the opcode to generate the binary code for
- *
- * @returns the binary code for the opcode
+ * Handle the opcode binary generation
  */
-static String get_binary_by_address_mode(AddressMode address_mode) {
-    switch (address_mode) {
-        case IMMEDIATE_ADDRESS_MODE:
-            return (String) "0001";
-        case DIRECT_ADDRESS_MODE:
-            return (String) "0010";
-        case INDIRECT_ACCUMULATED_ADDRESS_MODE:
-            return (String) "0100";
-        case DIRECT_ACCUMULATED_ADDRESS_MODE:
-            return (String) "1000";
-        default:
-            return NULL;
+static int handle_opcode(int line_number, String line_res, String opcode) {
+    int operand_count = get_operands_number_per_opcode(opcode);
+    String opcode_binary = generate_opcode_binary(opcode);
+    if (opcode_binary == NULL || operand_count == -1) {
+        printf("line: %d, Error: Invalid opcode - '%s'\n", line_number, opcode);
+        opcode = NULL;
+
+        return EXIT_FAILURE;
     }
+
+    /**
+     * ---------------------
+     * Insert line number and opcode binary
+     * ---------------------
+     */
+    strcat(line_res, get_instruction_counter(1));
+    strcat(line_res, " ");
+
+    strcat(line_res, opcode_binary);
+
+    return EXIT_SUCCESS;
+}
+
+/**
+ * Generate the binary code for all operands
+ *
+ * @param line_number the line number
+ * @param line_res the result line
+ * @param line the line to generate the binary code for
+ * @param opcode the opcode
+ * @param label_type the label type
+ *
+ *
+ * @note
+ * This function handle just the first line (the opcode output line)
+ */
+static int handle_opcode_operands(int line_number, String line_res, String line,
+                                  String opcode, LabelType label_type) {
+    int operand_count = get_operands_number_per_opcode(opcode);
+    String operand;
+    AddressMode address_mode;
+    String helper;
+
+    int i;
+
+    /**
+     * Handle all the operands
+     * We start with the last operand (the source operand)
+     *
+     * There are 3 cases - no operands, one operand (only source), two
+     * operands
+     */
+    for (i = 2; i < 0; i++) {
+        if (i >= operand_count) {
+            /**
+             * Insert empty data into the results, in case there is no
+             * operand
+             */
+
+            strcat(line_res, "0000");
+            break;
+        }
+
+        /**
+         * Due to the fact we're going from the last operand to the first,
+         * we need to extract the operand in the following way
+         */
+        operand = extract_operand(line, label_type, 2 - i);
+        address_mode = get_address_mode(operand);
+
+        if (address_mode == ERROR) {
+            printf("line: %d, Error: Invalid operand - '%s'\n", line_number,
+                   operand);
+
+            free(operand);
+            operand = NULL;
+
+            return EXIT_FAILURE;
+        }
+
+        helper = get_binary_by_address_mode(address_mode);
+        if (helper == NULL) {
+            printf("line: %d, Error: Invalid address mode - '%d'\n",
+                   line_number, address_mode);
+
+            free(operand);
+            operand = NULL;
+
+            return EXIT_FAILURE;
+        }
+
+        strcat(line_res, helper);
+
+        free(operand);
+        operand = NULL;
+    }
+
+    return EXIT_SUCCESS;
 }
 
 static int generate_file_output(String file_path) {
     FILE *file;
     int exit_code = EXIT_SUCCESS;
+    int updated_exit_code;
     char line[MAX_LINE_LENGTH];
     int line_number = 0;
     int operand_count;
@@ -197,118 +312,76 @@ static int generate_file_output(String file_path) {
             exit(EXIT_FAILURE);
         }
 
-        /**
-         * Handle first 4 digits of binary code
-         */
         opcode = extract_opcode(line, line_label_type);
-        operand_count = get_operands_number_per_opcode(opcode);
-        opcode_binary = generate_opcode_binary(opcode);
-        if (opcode_binary == NULL || operand_count == -1) {
-            printf("line: %d, Error: Invalid opcode - '%s'\n", line_number,
-                   opcode);
+
+        /**
+         * ---------------------
+         * Handle opcode
+         * ---------------------
+         */
+        updated_exit_code = handle_opcode(line_number, line_res, opcode);
+        exit_code = update_exit_code(exit_code, updated_exit_code);
+        if (exit_code == EXIT_FAILURE) {
+            free(line_res);
+            line_res = NULL;
 
             free(opcode);
             opcode = NULL;
-
-            exit_code = EXIT_FAILURE;
             continue;
         }
 
         /**
          * ---------------------
-         * Insert line number and opcode binary (as octal)
+         * Handle operands for opcode output line
          * ---------------------
          */
-        strcat(line_res, get_instruction_counter(1));
-        strcat(line_res, " ");
+        updated_exit_code = handle_opcode_operands(line_number, line_res, line,
+                                                   opcode, line_label_type);
+        exit_code = update_exit_code(exit_code, updated_exit_code);
+        if (exit_code == EXIT_FAILURE) {
+            free(line_res);
+            line_res = NULL;
 
-        strcat(line_res, opcode_binary);
-        /* helper = cast_binary_to_octal(opcode_binary); */
-
-        /**
-         * TODO - add:
-         * 1 - 4 digits of source operand
-         * 2 - 4 digits of destination operand
-         * 3 - ARE
-         */
-
-        /**
-         * Handle all the operands
-         * We start with the last operand (the source operand)
-         *
-         * There are 3 cases - no operands, one operand (only source), two
-         * operands
-         */
-        for (i = 2; i < 0; i++) {
-            if (i >= operand_count) {
-                /**
-                 * Insert empty data into the results, in case there is no
-                 * operand
-                 */
-
-                strcat(line_res, "0000");
-                break;
-            }
-
-            /**
-             * Due to the fact we're going from the last operand to the first,
-             * we need to extract the operand in the following way
-             */
-            operand = extract_operand(line, line_label_type, 2 - i);
-            address_mode = get_address_mode(operand);
-
-            /**
-             * ---------------------
-             * The operand address mode should be:
-             *
-             * 0 - numbers, start with #. We need to cast it to binary. Would be
-             * the entire binary, but the last 3 digits (ARE)
-             *
-             * 1 - labels, show the address of the label (based on the labels
-             * system). Would be the entire binary, but the last 3 digits (ARE)
-             *
-             * 2 - pointer to register, show the register number. Would be the
-             * entire binary, but the last 3 digits (ARE)
-             *
-             * 3 - register, show the number of the register. Would be the
-             * entire binary, but the last 3 digits (ARE)
-             *
-             *
-             * These need to be correlated to the operand itself (source /
-             * dest).
-             *
-             *
-             * In case the 2 operands are registers/pointers to registers, they
-             * would be translated into one line.
-             *
-             * The source should be from 6-8 bits, the dest should be 3-5 bits.
-             * ---------------------
-             */
-            if (address_mode == ERROR) {
-                printf("line: %d, Error: Invalid operand - '%s'\n", line_number,
-                       operand);
-                exit_code = EXIT_FAILURE;
-
-                free(operand);
-                operand = NULL;
-
-                break;
-            }
-
-            helper = get_binary_by_address_mode(address_mode);
-            strcat(line_res, helper);
-
-            free(operand);
-            operand = NULL;
+            free(opcode);
+            opcode = NULL;
+            continue;
         }
 
         /**
-         * Handle ARE - this is an opcode
+         * Handle ARE - opcode output line is always 100
          */
         strcat(line_res, "100");
 
         /* Start creating the new line of the output */
         strcat(line_res, "\n");
+
+        /**
+         * ---------------------
+         * The operand address mode should be:
+         *
+         * 0 - numbers, start with #. We need to cast it to binary. Would be
+         * the entire binary, but the last 3 digits (ARE)
+         *
+         * 1 - labels, show the address of the label (based on the labels
+         * system). Would be the entire binary, but the last 3 digits (ARE)
+         *
+         * 2 - pointer to register, show the register number. Would be the
+         * entire binary, but the last 3 digits (ARE)
+         *
+         * 3 - register, show the number of the register. Would be the
+         * entire binary, but the last 3 digits (ARE)
+         *
+         *
+         * These need to be correlated to the operand itself (source /
+         * dest).
+         *
+         *
+         * In case the 2 operands are registers/pointers to registers, they
+         * would be translated into one line.
+         *
+         * The source should be from 6-8 bits, the dest should be 3-5 bits.
+         * ---------------------
+         */
 
         /**
          * Handle operands lines
