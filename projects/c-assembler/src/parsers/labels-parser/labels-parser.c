@@ -223,6 +223,9 @@ LabelType is_label(String line) {
     return label_type;
 }
 
+/**
+ * Update the exit code if needed
+ */
 static int update_exit_code(int exit_code, int new_code) {
     if (exit_code == EXIT_FAILURE) {
         return EXIT_FAILURE;
@@ -231,6 +234,15 @@ static int update_exit_code(int exit_code, int new_code) {
     return new_code;
 }
 
+/**
+ * Handle the registration of a label that is not a type label
+ *
+ * @param line - the line to handle
+ * @param line_number - the line number
+ *
+ * @throw In case of an error, it would return EXIT_FAILURE
+ * @returns EXIT_SUCCESS if the entry label was registered successfully
+ */
 static int handle_no_type_label_reg(String line, int line_number) {
     String opcode = get_word(line, 1);
     String rest = substring_words(line, 2);
