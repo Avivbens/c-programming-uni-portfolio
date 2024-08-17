@@ -6,36 +6,6 @@
 #include <string.h>
 
 /**
- * The Instruction Counter begins at 100 and increases by the number of memory
- * cells each instruction uses.
- *
- * This indicates the next available memory cell.
- */
-static int get_instruction_counter(int increment) {
-    static int instruction_counter = SYMBOL_START_POINT;
-    int res = instruction_counter;
-
-    instruction_counter += increment;
-    return res;
-}
-
-/**
- * The Data Counter serves a similar purpose as the Instruction Counter but is
- * specifically for data.
- *
- * For safety reasons, they are kept separate.
- *
- * TODO - keep them separate
- */
-static int get_data_counter(int increment) {
-    static int data_counter = SYMBOL_START_POINT + 100;
-    int res = data_counter;
-
-    data_counter += increment;
-    return res;
-}
-
-/**
  * @param line - the line to check
  *
  * @returns:
@@ -349,6 +319,71 @@ static int handle_no_type_label_reg(String line, int line_number) {
 }
 
 /**
+ * Handle the increment of the instruction & data counter
+ *
+ * @param line - the line to handle
+ * @param line_number - the line number
+ */
+static int handle_not_label_reg(String line, int line_number) {
+    String trimmed_line = trim_string(line);
+    String first_word;
+    String rest;
+
+    String *operands;
+    int operands_amount;
+
+    OpcodeBinary *opcode;
+    int to_increment_by;
+
+    int exit_code = EXIT_FAILURE;
+
+    first_word = get_word(trimmed_line, 0);
+    opcode = get_command(first_word);
+
+    if (opcode != NULL) {
+        /**
+         * TODO - validate operands number
+         */
+
+        to_increment_by = opcode->operands + 1;
+        get_instruction_counter(to_increment_by);
+        exit_code = EXIT_SUCCESS;
+    }
+
+    if (strcmp(first_word, (String)LABEL_DATA_PREFIX) == 0) {
+        /**
+         * TODO - validate operands number
+         */
+
+        rest = substring_words(trimmed_line, 1);
+        operands = split_string(rest, (String) ",");
+        operands_amount = get_string_array_length(operands, sizeof(String));
+
+        get_data_counter(operands_amount);
+        exit_code = EXIT_SUCCESS;
+    }
+
+    if (strcmp(first_word, (String)LABEL_STRING_PREFIX) == 0) {
+        /**
+         * TODO - validate operands number
+         */
+
+        rest = substring_words(trimmed_line, 1);
+        operands_amount = strlen(rest) - 2 + 1;
+
+        get_data_counter(operands_amount);
+        exit_code = EXIT_SUCCESS;
+    }
+
+    if (exit_code == EXIT_FAILURE) {
+        printf("line: %d, Error: '%s' is not a valid command\n", line_number,
+               first_word);
+    }
+
+    return exit_code;
+}
+
+/**
  * Handle the registration of a data label
  *
  * @param line - the line to handle
@@ -644,6 +679,8 @@ static int label_registration(String file_path) {
                 continue;
 
             case NOT_LABEL:
+                res = handle_not_label_reg(line, line_number);
+                exit_code = update_exit_code(exit_code, res);
                 continue;
 
             case NOT_LABEL_TYPE:

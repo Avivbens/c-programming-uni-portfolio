@@ -11,7 +11,7 @@
  *
  * @attention - free this memory after use
  */
-static String get_instruction_counter(int increment) {
+static String get_output_line_counter(int increment) {
     static int instruction_counter = IC_OUTPUT_START_POINT;
     int res = instruction_counter;
     String str_res;
@@ -357,7 +357,8 @@ static String handle_label_operand(int line_number, String operand) {
         return NULL;
     }
 
-    memory_address = label->memory_address;
+    memory_address =
+        label->memory_address + SYMBOL_START_POINT + get_instruction_counter(0);
     helper1 = cast_decimal_to_string(memory_address);
     binary = cast_decimal_to_binary(helper1);
 
@@ -501,7 +502,7 @@ static String handle_operands_output(int line_number, String line,
             return NULL;
         }
 
-        strcat(results, get_instruction_counter(1));
+        strcat(results, get_output_line_counter(1));
         strcat(results, " ");
 
         helper = cast_binary_to_octal(rest_line_res);
@@ -519,7 +520,7 @@ static String handle_operands_output(int line_number, String line,
     }
 
     for (i = 0; i < operand_count; i++) {
-        strcat(results, get_instruction_counter(1));
+        strcat(results, get_output_line_counter(1));
         strcat(results, " ");
 
         operand = extract_operand(line, label_type, i);
@@ -656,7 +657,7 @@ static String handle_data_line(int line_number, String line,
         /**
          * TODO - should be separated
          */
-        strcat(output, get_instruction_counter(1));
+        strcat(output, get_output_line_counter(1));
         strcat(output, " ");
         strcat(output, helper1);
         strcat(output, "\n");
@@ -727,7 +728,7 @@ static String handle_string_line(int line_number, String line,
 
         helper1 = cast_binary_to_octal(helper2);
 
-        strcat(output, get_instruction_counter(1));
+        strcat(output, get_output_line_counter(1));
         strcat(output, " ");
         strcat(output, helper1);
         strcat(output, "\n");
@@ -859,7 +860,7 @@ static String generate_file_output(String file_path) {
          * Insert line number and opcode binary
          * ---------------------
          */
-        strcat(file_res, get_instruction_counter(1));
+        strcat(file_res, get_output_line_counter(1));
         strcat(file_res, " ");
 
         /**

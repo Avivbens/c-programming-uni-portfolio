@@ -35,6 +35,9 @@ Label *get_label(String name);
 int has_label(String name);
 LinkedList *get_labels_list(void);
 
+int get_instruction_counter(int increment);
+int get_data_counter(int increment);
+
 void debug_labels(void);
 
 #endif

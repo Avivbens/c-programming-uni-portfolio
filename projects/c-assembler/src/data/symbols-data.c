@@ -4,6 +4,34 @@
 #include <stdlib.h>
 
 /**
+ * The Instruction Counter begins at 100 and increases by the number of memory
+ * cells each instruction uses.
+ *
+ * This indicates the next available memory cell.
+ */
+int get_instruction_counter(int increment) {
+    static int instruction_counter = 0;
+    int res = instruction_counter;
+
+    instruction_counter += increment;
+    return res;
+}
+
+/**
+ * The Data Counter serves a similar purpose as the Instruction Counter but is
+ * specifically for data.
+ *
+ * For safety reasons, they are kept separate.
+ */
+int get_data_counter(int increment) {
+    static int data_counter = 0;
+    int res = data_counter;
+
+    data_counter += increment;
+    return res;
+}
+
+/**
  * A helper function to print a label - Label
  */
 static void print_label(void* data) {
