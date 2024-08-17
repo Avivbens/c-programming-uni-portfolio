@@ -269,8 +269,10 @@ static int handle_opcode_operands(int line_number, String line_res, String line,
         address_mode = get_address_mode(operand);
 
         if (address_mode == ERROR) {
-            printf("line: %d, Error: Invalid operand - '%s'\n", line_number,
-                   operand);
+            printf(
+                "line: %d, Error(handle_opcode_operands): Invalid operand - "
+                "'%s'\n",
+                line_number, operand);
 
             free(operand);
             operand = NULL;
@@ -342,22 +344,18 @@ static String handle_number_operand(int line_number, String operand) {
  */
 static String handle_label_operand(int line_number, String operand) {
     Label *label = NULL;
-    LabelType label_type;
     String binary;
     String helper1;
     int memory_address;
 
     helper1 = trim_string(operand);
-    label_type = is_label(helper1);
     label = get_label(helper1);
 
     free(helper1);
     helper1 = NULL;
 
-    if (label == NULL || label_type == LABEL_VIOLATION ||
-        label_type == NOT_LABEL) {
+    if (label == NULL) {
         printf("line: %d, Error: Invalid label - '%s'\n", line_number, operand);
-
         return NULL;
     }
 
@@ -368,15 +366,12 @@ static String handle_label_operand(int line_number, String operand) {
     free(helper1);
     helper1 = NULL;
 
-    switch (label_type) {
-        case LABEL_EXTERN:
-            /* For extern - E in the ARE */
-            strcat(binary, "001");
-            break;
-        default:
-            /* For the rest - R in the ARE */
-            strcat(binary, "010");
-            break;
+    if (label->has_extern) {
+        /* For extern - E in the ARE */
+        strcat(binary, "001");
+    } else {
+        /* For the rest - R in the ARE */
+        strcat(binary, "010");
     }
 
     return binary;
@@ -530,8 +525,10 @@ static int handle_operands_output(int line_number, String line_res, String line,
         address_mode = get_address_mode(operand);
         switch (address_mode) {
             case ERROR:
-                printf("line: %d, Error: Invalid operand - '%s'\n", line_number,
-                       operand);
+                printf(
+                    "line: %d, Error(handle_operands_output): Invalid operand "
+                    "- '%s'\n",
+                    line_number, operand);
                 exit_code = EXIT_FAILURE;
                 break;
 
@@ -718,8 +715,17 @@ static int generate_file_output(String file_path) {
             exit(EXIT_FAILURE);
         }
 
+        /**
+         * ---------------------
+         * Handle data / string lines
+         * ---------------------
+         */
+        helper = trim_string(line);
         if (line_label_type == LABEL_DATA ||
-            starts_with(line, (String)LABEL_DATA_PREFIX)) {
+            starts_with(helper, (String)LABEL_DATA_PREFIX)) {
+            free(helper);
+            helper = NULL;
+
             helper = handle_data_line(line_number, line, line_label_type);
             if (helper == NULL) {
                 free(line_res);
@@ -745,6 +751,9 @@ static int generate_file_output(String file_path) {
             helper = NULL;
             continue;
         }
+
+        free(helper);
+        helper = NULL;
 
         /**
          * TODO - handle string
