@@ -743,9 +743,9 @@ static String handle_string_line(int line_number, String line,
  *
  * @param file_path the path for the file
  *
- * @returns EXIT_SUCCESS if the output was successful, otherwise EXIT_FAILURE
+ * @returns The new file content, or NULL if the file could not be created
  */
-static int generate_file_output(String file_path) {
+static String generate_file_output(String file_path) {
     FILE *file;
     int exit_code = EXIT_SUCCESS;
     int updated_exit_code;
@@ -755,14 +755,20 @@ static int generate_file_output(String file_path) {
     String opcode = NULL;
     LabelType line_label_type;
 
+    String file_res = (String)malloc(MAX_LINE_OUTPUT *
+                                     MAX_LINES_FOR_OUTPUT_LINE * sizeof(char));
     String line_res = NULL;
-    String rest_line_res = NULL;
     String helper = NULL;
+
+    if (file_res == NULL) {
+        printf("Error: Could not allocate memory for file_res\n");
+        exit(EXIT_FAILURE);
+    }
 
     file = fopen(file_path, "r");
     if (file == NULL) {
         printf("Error: Could not open file '%s'\n", file_path);
-        return EXIT_FAILURE;
+        return NULL;
     }
 
     /**
@@ -777,11 +783,11 @@ static int generate_file_output(String file_path) {
 
         line_label_type = is_label(line);
 
-        line_res = (String)malloc(MAX_LINE_OUTPUT * MAX_LINES_FOR_OUTPUT_LINE *
-                                  sizeof(char));
-        rest_line_res = (String)malloc(MAX_LINE_OUTPUT * sizeof(char));
-
-        if (line_res == NULL || rest_line_res == NULL) {
+        line_res = (String)malloc(MAX_LINE_OUTPUT * sizeof(char));
+        file_res = (String)realloc(file_res, MAX_LINE_OUTPUT * line_number *
+                                                 MAX_LINES_FOR_OUTPUT_LINE *
+                                                 sizeof(char));
+        if (line_res == NULL | file_res == NULL) {
             printf("Error: Could not allocate memory for line\n");
             exit(EXIT_FAILURE);
         }
@@ -802,21 +808,15 @@ static int generate_file_output(String file_path) {
                 free(line_res);
                 line_res = NULL;
 
-                free(rest_line_res);
-                rest_line_res = NULL;
-
                 exit_code = EXIT_FAILURE;
                 continue;
             }
 
-            strcat(line_res, helper);
-            strcat(line_res, "\n");
+            strcat(file_res, helper);
+            strcat(file_res, "\n");
 
             free(line_res);
             line_res = NULL;
-
-            free(rest_line_res);
-            rest_line_res = NULL;
 
             free(helper);
             helper = NULL;
@@ -830,15 +830,12 @@ static int generate_file_output(String file_path) {
                 free(line_res);
                 line_res = NULL;
 
-                free(rest_line_res);
-                rest_line_res = NULL;
-
                 exit_code = EXIT_FAILURE;
                 continue;
             }
 
-            strcat(line_res, helper);
-            strcat(line_res, "\n");
+            strcat(file_res, helper);
+            strcat(file_res, "\n");
 
             free(helper);
             helper = NULL;
@@ -855,15 +852,15 @@ static int generate_file_output(String file_path) {
          * Insert line number and opcode binary
          * ---------------------
          */
-        strcat(line_res, get_instruction_counter(1));
-        strcat(line_res, " ");
+        strcat(file_res, get_instruction_counter(1));
+        strcat(file_res, " ");
 
         /**
          * ---------------------
          * Handle opcode
          * ---------------------
          */
-        updated_exit_code = handle_opcode(line_number, rest_line_res, opcode);
+        updated_exit_code = handle_opcode(line_number, line_res, opcode);
         exit_code = update_exit_code(exit_code, updated_exit_code);
 
         /**
@@ -871,22 +868,22 @@ static int generate_file_output(String file_path) {
          * Handle operands for opcode output line
          * ---------------------
          */
-        updated_exit_code = handle_opcode_operands(
-            line_number, rest_line_res, line, opcode, line_label_type);
+        updated_exit_code = handle_opcode_operands(line_number, line_res, line,
+                                                   opcode, line_label_type);
         exit_code = update_exit_code(exit_code, updated_exit_code);
 
         /* Handle ARE - opcode output line is always 100 */
-        strcat(rest_line_res, "100");
+        strcat(line_res, "100");
 
         /* Cast the current binary to octal */
-        helper = cast_binary_to_octal(rest_line_res);
-        strcat(line_res, helper);
+        helper = cast_binary_to_octal(line_res);
+        strcat(file_res, helper);
 
         free(helper);
         helper = NULL;
 
         /* Start creating the new line of the output */
-        strcat(line_res, "\n");
+        strcat(file_res, "\n");
 
         /**
          * ---------------------
@@ -899,44 +896,71 @@ static int generate_file_output(String file_path) {
          * The function itself convert the output to octal, and enter a new line
          * ---------------------
          */
-        updated_exit_code = handle_operands_output(line_number, line_res, line,
+        updated_exit_code = handle_operands_output(line_number, file_res, line,
                                                    opcode, line_label_type);
         exit_code = update_exit_code(exit_code, updated_exit_code);
-
-        free(line_res);
-        line_res = NULL;
 
         free(opcode);
         opcode = NULL;
     }
 
-    return exit_code;
+    return file_res;
 }
 
 /**
  * Handle the output for the files
  *
- * @param file_paths the paths for the files
+ * @param file_paths the paths for the files, without the file extension
  *
  * @return EXIT_SUCCESS if the output was successful, otherwise EXIT_FAILURE
  */
 int handle_output(String *file_paths) {
-    int i;
+    FILE *file;
     int is_failed = EXIT_SUCCESS;
-    int create_output_res = EXIT_SUCCESS;
+    String file_res;
+    int i;
+
+    String target_file_path;
 
     /**
      * Create output files
      */
     for (i = 0; file_paths[i] != NULL; i++) {
-        create_output_res = generate_file_output(file_paths[i]);
+        file_res = generate_file_output(file_paths[i]);
 
-        if (create_output_res == EXIT_FAILURE) {
+        if (file_res == NULL) {
             printf("Error: Could not create output for file: '%s' \n",
                    file_paths[i]);
 
             is_failed = EXIT_FAILURE;
+            continue;
         }
+
+        target_file_path = replace_substring(
+            file_paths[i], (String)POST_PROCESS_FILE_EXTENSION,
+            (String)TARGET_FILE_EXTENSION);
+
+        file = fopen(target_file_path, "w");
+        if (file == NULL) {
+            printf("Error: Could not create target file '%s'\n",
+                   target_file_path);
+            is_failed = EXIT_FAILURE;
+
+            free(file_res);
+            file_res = NULL;
+
+            free(target_file_path);
+            target_file_path = NULL;
+            continue;
+        }
+
+        fprintf(file, "%s", file_res);
+
+        free(file_res);
+        file_res = NULL;
+
+        free(target_file_path);
+        target_file_path = NULL;
     }
 
     return is_failed;
