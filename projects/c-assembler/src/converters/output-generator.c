@@ -270,12 +270,12 @@ static String handle_label_operand(int line_number, String operand) {
  *
  * @param line_number the line number
  * @param operand the operand to handle
- * @param order the order of the operand (0 - source, 1 - dest)
+ * @param is_dest if the operand is a destination
  *
  * @returns NULL if the operand is valid, otherwise the new line in binary
  */
 static String handle_register_operand(int line_number, String operand,
-                                      int order) {
+                                      int is_dest) {
     String helper1;
     String helper2;
     String binary;
@@ -297,7 +297,7 @@ static String handle_register_operand(int line_number, String operand,
     }
 
     /* Insert empty dest */
-    if (order == 0) {
+    if (is_dest != 1) {
         strcat(binary, "000");
     }
 
@@ -457,9 +457,12 @@ static String handle_operands_output(int line_number, String line,
             case INDIRECT_ACCUMULATED_ADDRESS_MODE:
                 /**
                  * Cast the number to binary
+                 *
+                 * The register is a destination if it's the second operand, or
+                 * there is only 1 operand
                  */
-                rest_line_res =
-                    handle_register_operand(line_number, operand, i);
+                rest_line_res = handle_register_operand(
+                    line_number, operand, operand_count == 1 || i == 1);
                 if (rest_line_res == NULL) {
                     exit_code = EXIT_FAILURE;
                     break;
