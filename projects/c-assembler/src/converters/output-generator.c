@@ -364,8 +364,8 @@ static String handle_label_operand(int line_number, String operand) {
  *
  * @returns NULL if the operand is valid, otherwise the new line in binary
  */
-static String handle_register_pointer_operand(int line_number, String operand,
-                                              int order) {
+static String handle_register_operand(int line_number, String operand,
+                                      int order) {
     String helper1;
     String helper2;
     String binary;
@@ -396,6 +396,46 @@ static String handle_register_pointer_operand(int line_number, String operand,
     return binary;
 }
 
+static String handle_two_registers_operands(String line_res, String line,
+                                            LabelType label_type) {
+    String operand;
+    String helper1;
+    String helper2;
+    String helper3;
+    String binary = (String)malloc(MAX_LINE_OUTPUT * sizeof(char));
+
+    int i;
+
+    /**
+     * Insert all registers numbers into the binary
+     */
+    for (i = 0; i < 2; i++) {
+        operand = extract_operand(line, label_type, i);
+
+        helper1 = replace_substring(operand, (String) "*", (String) "");
+        helper2 = trim_string(helper1);
+        helper3 = cast_decimal_to_binary(helper2);
+
+        strcat(binary, helper3);
+
+        free(helper1);
+        helper1 = NULL;
+
+        free(helper2);
+        helper2 = NULL;
+
+        free(helper3);
+        helper3 = NULL;
+
+        free(operand);
+        operand = NULL;
+    }
+
+    /* Insert ARE */
+    strcat(binary, "100");
+    return binary;
+}
+
 /**
  * Generate the binary code for all operands
  *
@@ -414,18 +454,54 @@ static String handle_register_pointer_operand(int line_number, String operand,
 static int handle_operands_output(int line_number, String line_res, String line,
                                   String opcode, LabelType label_type) {
     int operand_count = get_operands_number_per_opcode(opcode);
-    String operand;
     AddressMode address_mode;
+    String operand = NULL;
     int exit_code = EXIT_SUCCESS;
 
     String rest_line_res = NULL;
     String helper = NULL;
 
-    /**
-     * TODO - handle case when both operands are registers
-     */
-
     int i;
+    int all_registers = 1;
+
+    /**
+     * ---------------------
+     * Handle 2 operands are registers
+     * ---------------------
+     */
+    if (operand_count < 2) {
+        all_registers = 0;
+    } else {
+        for (i = 0; i < operand_count; i++) {
+            operand = extract_operand(line, label_type, i);
+            address_mode = get_address_mode(operand);
+
+            free(operand);
+            operand = NULL;
+
+            if (address_mode != DIRECT_ACCUMULATED_ADDRESS_MODE &&
+                address_mode != INDIRECT_ACCUMULATED_ADDRESS_MODE) {
+                all_registers = 0;
+                break;
+            }
+        }
+    }
+
+    if (all_registers) {
+        rest_line_res =
+            handle_two_registers_operands(line_res, line, label_type);
+        if (rest_line_res == NULL) {
+            exit_code = EXIT_FAILURE;
+            return exit_code;
+        }
+
+        strcat(line_res, rest_line_res);
+        free(rest_line_res);
+        rest_line_res = NULL;
+
+        return exit_code;
+    }
+
     for (i = 0; i < operand_count; i++) {
         strcat(line_res, get_instruction_counter(1));
         strcat(line_res, " ");
@@ -476,7 +552,7 @@ static int handle_operands_output(int line_number, String line_res, String line,
                  * Cast the number to binary
                  */
                 rest_line_res =
-                    handle_register_pointer_operand(line_number, operand, i);
+                    handle_register_operand(line_number, operand, i);
                 if (rest_line_res == NULL) {
                     exit_code = EXIT_FAILURE;
                     break;
@@ -492,9 +568,9 @@ static int handle_operands_output(int line_number, String line_res, String line,
 
         free(operand);
         operand = NULL;
-
-        return exit_code;
     }
+
+    return exit_code;
 }
 
 static int generate_file_output(String file_path) {
@@ -597,6 +673,8 @@ static int generate_file_output(String file_path) {
         free(opcode);
         opcode = NULL;
     }
+
+    return exit_code;
 }
 
 /**
