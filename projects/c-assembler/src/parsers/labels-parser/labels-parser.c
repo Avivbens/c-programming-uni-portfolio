@@ -326,11 +326,12 @@ static int handle_no_type_label_reg(String line, int line_number) {
  */
 static int handle_not_label_reg(String line, int line_number) {
     String trimmed_line = trim_string(line);
-    String first_word;
-    String rest;
+    String first_word = NULL;
+    String rest = NULL;
 
-    String *operands;
+    String *operands = NULL;
     int operands_amount;
+    int flag;
 
     OpcodeBinary *opcode;
     int to_increment_by;
@@ -341,11 +342,22 @@ static int handle_not_label_reg(String line, int line_number) {
     opcode = get_command(first_word);
 
     if (opcode != NULL) {
-        /**
-         * TODO - validate operands number
-         */
+        rest = substring_words(trimmed_line, 1);
+        operands = split_string(rest, (String) ",");
+        operands_amount = get_string_array_length(operands, sizeof(String));
 
-        to_increment_by = opcode->operands + 1;
+        flag = is_all_operands_are_registers(line, NOT_LABEL, operands_amount);
+
+        /**
+         * In case both are registers, we need to combine them to one
+         * instruction
+         */
+        if (flag == 0) {
+            to_increment_by = opcode->operands + 1;
+        } else {
+            to_increment_by = 2;
+        }
+
         get_instruction_counter(to_increment_by);
         exit_code = EXIT_SUCCESS;
     }
@@ -379,6 +391,15 @@ static int handle_not_label_reg(String line, int line_number) {
         printf("line: %d, Error: '%s' is not a valid command\n", line_number,
                first_word);
     }
+
+    free(first_word);
+    first_word = NULL;
+
+    free(trimmed_line);
+    trimmed_line = NULL;
+
+    free(rest);
+    rest = NULL;
 
     return exit_code;
 }
