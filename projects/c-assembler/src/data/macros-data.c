@@ -2,6 +2,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 /**
  * A helper function to print a macro value - string
@@ -30,7 +31,7 @@ LinkedList* get_macros_list(void) {
  * @returns int - The result of the operation
  */
 int add_macro(String name, String value) {
-    int value_size = sizeof(String);
+    int value_size = strlen(value) * sizeof(String);
     LinkedList* macros = get_macros_list();
 
     if (has_list(macros, name)) {
