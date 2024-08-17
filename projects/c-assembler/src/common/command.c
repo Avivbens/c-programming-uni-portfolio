@@ -5,6 +5,9 @@
 #include <stdlib.h>
 #include <string.h>
 
+/**
+ * TODO - check the allowed address modes
+ */
 static OpcodeBinary opcodes[OPCODES_NUM] = {
     {(String) "mov", (String) "0000", 2},
     {(String) "cmp", (String) "0001", 2},

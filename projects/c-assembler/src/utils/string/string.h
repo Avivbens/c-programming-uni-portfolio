@@ -14,6 +14,8 @@ int starts_with(String str, String prefix);
 int ends_with(String str, String suffix);
 String* split_string(String line, String delimiter);
 String substring_words(String line, int word_number);
-String cast_to_binary(String number);
+String cast_decimal_to_binary(String number);
+String cast_binary_to_octal(String binary_form);
+String cast_decimal_to_string(int number);
 
 #endif
