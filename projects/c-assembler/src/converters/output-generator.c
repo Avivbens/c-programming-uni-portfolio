@@ -404,8 +404,7 @@ static String handle_operands_output(int line_number, String line,
         helper = NULL;
 
         strcat(results, "\n");
-
-        return NULL;
+        return results;
     }
 
     for (i = 0; i < operand_count; i++) {
