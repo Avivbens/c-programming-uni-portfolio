@@ -711,7 +711,7 @@ static String handle_string_line(int line_number, String line,
         exit(EXIT_FAILURE);
     }
 
-    for (i = chars_string[1]; i < strlen(chars_string) - 1; i++) {
+    for (i = chars_string[1]; *(chars_string + (i + 1)) != '\0'; i++) {
         char_code = (int)i;
         helper1 = cast_decimal_to_string(char_code);
         helper2 = cast_decimal_to_binary(helper1);
