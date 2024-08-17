@@ -865,14 +865,6 @@ static int generate_file_output(String file_path) {
          */
         updated_exit_code = handle_opcode(line_number, rest_line_res, opcode);
         exit_code = update_exit_code(exit_code, updated_exit_code);
-        if (exit_code == EXIT_FAILURE) {
-            free(line_res);
-            line_res = NULL;
-
-            free(opcode);
-            opcode = NULL;
-            continue;
-        }
 
         /**
          * ---------------------
@@ -882,14 +874,6 @@ static int generate_file_output(String file_path) {
         updated_exit_code = handle_opcode_operands(
             line_number, rest_line_res, line, opcode, line_label_type);
         exit_code = update_exit_code(exit_code, updated_exit_code);
-        if (exit_code == EXIT_FAILURE) {
-            free(line_res);
-            line_res = NULL;
-
-            free(opcode);
-            opcode = NULL;
-            continue;
-        }
 
         /* Handle ARE - opcode output line is always 100 */
         strcat(rest_line_res, "100");
@@ -918,14 +902,6 @@ static int generate_file_output(String file_path) {
         updated_exit_code = handle_operands_output(line_number, line_res, line,
                                                    opcode, line_label_type);
         exit_code = update_exit_code(exit_code, updated_exit_code);
-        if (exit_code == EXIT_FAILURE) {
-            free(line_res);
-            line_res = NULL;
-
-            free(opcode);
-            opcode = NULL;
-            continue;
-        }
 
         free(line_res);
         line_res = NULL;
