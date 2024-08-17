@@ -139,7 +139,12 @@ String extract_operand(String line, LabelType label_type, int operand_index) {
 
     operands = split_string(operands_string, (String) ",");
 
+    /* In case we've got just 1 item, split returns array with 1 cell */
     helper = operands[operand_index];
+    if (helper == NULL) {
+        helper = operands[operand_index - 1];
+    }
+
     operand = trim_string(helper);
 
     return operand;

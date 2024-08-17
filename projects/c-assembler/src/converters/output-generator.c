@@ -137,7 +137,7 @@ static int handle_opcode_operands(int line_number, String line_res, String line,
              */
 
             strcat(line_res, "0000");
-            break;
+            continue;
         }
 
         /**
@@ -238,8 +238,16 @@ static String handle_label_operand(int line_number, String operand) {
         return NULL;
     }
 
-    memory_address =
-        label->memory_address + SYMBOL_START_POINT + get_instruction_counter(0);
+    /**
+     * Extern labels should not has any memory address for operands output
+     */
+    if (label->has_extern) {
+        memory_address = 0;
+    } else {
+        memory_address = label->memory_address + SYMBOL_START_POINT +
+                         get_instruction_counter(0);
+    }
+
     helper1 = cast_decimal_to_string(memory_address);
     binary = cast_decimal_to_binary(helper1);
 
@@ -682,6 +690,13 @@ static String generate_file_output(String file_path) {
         if (line_res == NULL | file_res == NULL) {
             printf("Error: Could not allocate memory for line\n");
             exit(EXIT_FAILURE);
+        }
+
+        /**
+         * No need to generate output for entry / extern labels
+         */
+        if (line_label_type == LABEL_ENTRY || line_label_type == LABEL_EXTERN) {
+            continue;
         }
 
         /**

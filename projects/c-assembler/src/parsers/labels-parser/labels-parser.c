@@ -507,107 +507,15 @@ static int handle_data_label_reg(String line, int line_number) {
  * @returns EXIT_SUCCESS if the entry label was registered successfully
  */
 static int handle_entry_label_reg(String line, int line_number) {
-    String opcode = get_word(line, 1);
-    String rest = substring_words(line, 2);
-
-    /**
-     * -----------------------
-     * Extract the label name
-     * -----------------------
-     */
-    String label_raw = get_word(line, 0);
-    String label = replace_substring(label_raw, (String) ":", (String) "");
-
-    String helper_str;
+    String label = get_word(line, 1);
     int helper_int;
 
-    String *operands;
-    int operands_amount = 0;
-    OpcodeCheck res;
-
-    free(label_raw);
-    label_raw = NULL;
-
-    /**
-     * ---------------------
-     * Clean the rest string
-     * ---------------------
-     */
-    helper_str = trim_string(rest);
-    free(rest);
-    rest = helper_str;
-
-    /**
-     * ---------------------
-     * Extract the operands
-     * ---------------------
-     */
-    operands = split_string(rest, (String) ",");
-    operands_amount = get_string_array_length(operands, sizeof(String));
-
-    free_string_array_recursively(operands, operands_amount);
-    operands = NULL;
-
-    free(rest);
-    rest = NULL;
-
-    /**
-     * ---------------------
-     * Case: Opcode not exists
-     * ---------------------
-     */
-    res = validate_opcode_operand(opcode, operands_amount);
-    if (res == NOT_EXISTS) {
+    helper_int = add_label(label, LABEL_ENTRY, 0);
+    if (helper_int == EXIT_FAILURE) {
         printf(
-            "line: %d, Error(handle_entry_label_reg): Opcode '%s' not exists! "
-            "\n",
-            line_number, opcode);
-
-        free(label);
-        label = NULL;
-
-        free(opcode);
-        opcode = NULL;
-
-        return EXIT_FAILURE;
-    }
-
-    /**
-     * ---------------------
-     * Case: Invalid operands
-     * ---------------------
-     */
-    if (res == INVALID_OPERANDS) {
-        printf(
-            "line: %d, Error(handle_entry_label_reg): Opcode '%s' can not "
-            "accept %d operands \n",
-            line_number, opcode, operands_amount);
-
-        free(label);
-        label = NULL;
-
-        free(opcode);
-        opcode = NULL;
-
-        return EXIT_FAILURE;
-    }
-
-    free(opcode);
-    opcode = NULL;
-
-    /**
-     * ---------------------
-     * Case: global label error
-     * ---------------------
-     */
-    helper_int = add_label(label, LABEL_ENTRY,
-                           get_instruction_counter(operands_amount + 1));
-
-    if (helper_int != 0) {
-        printf(
-            "Error(handle_entry_label_reg): label '%s' can not be added to "
-            "symbols table\n",
-            label);
+            "line: %d, Error(handle_entry_label_reg): label '%s' can not be "
+            "added to symbols table\n",
+            line_number, label);
 
         free(label);
         label = NULL;
