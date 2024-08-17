@@ -596,6 +596,81 @@ static int handle_operands_output(int line_number, String line_res, String line,
 }
 
 /**
+ * Handle data line data with / without label
+ *
+ * @param line_number the line number
+ * @param line the line to handle
+ * @param line_label_type the label type
+ * @param line_res the result line
+ *
+ * @returns NULL if the line is valid, otherwise the new line (after casting to
+ * octal & insert the data counter)
+ */
+static String handle_data_line(int line_number, String line,
+                               LabelType line_label_type) {
+    String numbers_string;
+    String *numbers;
+    int numbers_amount;
+    int exit_code = EXIT_SUCCESS;
+    String binary = (String)malloc(MAX_LINE_OUTPUT * sizeof(char));
+    int i;
+
+    int extract_from = line_label_type == NOT_LABEL ? 1 : 2;
+    String helper1;
+    String helper2;
+
+    numbers_string = substring_words(line, extract_from);
+    numbers = split_string(numbers_string, (String) ",");
+    numbers_amount = get_string_array_length(numbers, sizeof(String));
+
+    for (i = 0; i < numbers_amount; i++) {
+        helper1 = trim_string(numbers[i]);
+        if (!is_number(helper1)) {
+            printf("line: %d, Error: '%s' is not a valid number\n", line_number,
+                   helper1);
+
+            free(helper1);
+            helper1 = NULL;
+
+            exit_code = EXIT_FAILURE;
+            continue;
+        }
+
+        helper2 = cast_decimal_to_binary(helper1);
+        free(helper1);
+        helper1 = NULL;
+
+        helper1 = cast_binary_to_octal(helper2);
+
+        /**
+         * TODO - should be separated
+         */
+        strcat(binary, get_instruction_counter(1));
+        strcat(binary, " ");
+        strcat(binary, helper1);
+
+        free(helper1);
+        helper1 = NULL;
+
+        binary = (String)realloc(binary, strlen(binary) + MAX_LINE_OUTPUT);
+        if (binary == NULL) {
+            printf(
+                "Error(handle_data_line): Could not allocate memory for "
+                "binary\n");
+            exit(EXIT_FAILURE);
+        }
+
+        strcat(binary, "\n");
+    }
+
+    if (exit_code == EXIT_FAILURE) {
+        return NULL;
+    }
+
+    return binary;
+}
+
+/**
  * Generate the output for a file
  *
  * @param file_path the path for the file
@@ -641,6 +716,41 @@ static int generate_file_output(String file_path) {
         if (line_res == NULL || rest_line_res == NULL) {
             printf("Error: Could not allocate memory for line\n");
             exit(EXIT_FAILURE);
+        }
+
+        if (line_label_type == LABEL_DATA ||
+            starts_with(line, (String)LABEL_DATA_PREFIX)) {
+            helper = handle_data_line(line_number, line, line_label_type);
+            if (helper == NULL) {
+                free(line_res);
+                line_res = NULL;
+
+                free(rest_line_res);
+                rest_line_res = NULL;
+
+                exit_code = EXIT_FAILURE;
+                continue;
+            }
+
+            strcat(line_res, helper);
+            strcat(line_res, "\n");
+
+            free(line_res);
+            line_res = NULL;
+
+            free(rest_line_res);
+            rest_line_res = NULL;
+
+            free(helper);
+            helper = NULL;
+            continue;
+        }
+
+        /**
+         * TODO - handle string
+         */
+        if (line_label_type == LABEL_STRING) {
+            continue;
         }
 
         opcode = extract_opcode(line, line_label_type);
