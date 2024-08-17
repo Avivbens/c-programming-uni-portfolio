@@ -581,11 +581,11 @@ static int handle_operands_output(int line_number, String line_res, String line,
         free(helper);
         helper = NULL;
 
-        free(operand);
-        operand = NULL;
-
         strcat(line_res, "\n");
     }
+
+    free(operand);
+    operand = NULL;
 
     return exit_code;
 }
