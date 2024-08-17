@@ -277,7 +277,7 @@ static int handle_opcode_operands(int line_number, String line_res, String line,
  * @param line_number the line number
  * @param operand the operand to handle
  *
- * @returns NULL if the operand is valid, otherwise the new line binary
+ * @returns NULL if the operand is valid, otherwise the new line in binary
  */
 static String handle_number_operand(int line_number, String operand) {
     String helper1;
@@ -302,6 +302,56 @@ static String handle_number_operand(int line_number, String operand) {
 
     /* Insert ARE for number - 100 */
     strcat(binary, "100");
+    return binary;
+}
+
+/**
+ * Handle operand that is a label
+ *
+ * @param line_number the line number
+ * @param operand the operand to handle
+ *
+ * @returns NULL if the operand is valid, otherwise the new line in binary
+ */
+static String handle_label_operand(int line_number, String operand) {
+    Label *label = NULL;
+    LabelType label_type;
+    String binary;
+    String helper1;
+    int memory_address;
+
+    helper1 = trim_string(operand);
+    label_type = is_label(helper1);
+    label = get_label(helper1);
+
+    free(helper1);
+    helper1 = NULL;
+
+    if (label == NULL || label_type == LABEL_VIOLATION ||
+        label_type == NOT_LABEL) {
+        printf("line: %d, Error: Invalid label - '%s'\n", line_number, operand);
+
+        return NULL;
+    }
+
+    memory_address = label->memory_address;
+    helper1 = cast_decimal_to_string(memory_address);
+    binary = cast_decimal_to_binary(helper1);
+
+    free(helper1);
+    helper1 = NULL;
+
+    switch (label_type) {
+        case LABEL_EXTERN:
+            /* For extern - E in the ARE */
+            strcat(binary, "001");
+            break;
+        default:
+            /* For the rest - R in the ARE */
+            strcat(binary, "010");
+            break;
+    }
+
     return binary;
 }
 
@@ -341,34 +391,6 @@ static int handle_operands_output(int line_number, String line_res, String line,
 
         operand = extract_operand(line, label_type, i);
         address_mode = get_address_mode(operand);
-        /**
-         * ---------------------
-         * The operand address mode should be:
-         *
-         * 0 - numbers, start with #. We need to cast it to binary. Would be
-         * the entire binary, but the last 3 digits (ARE)
-         *
-         * 1 - labels, show the address of the label (based on the labels
-         * system). Would be the entire binary, but the last 3 digits (ARE)
-         *
-         * 2 - pointer to register, show the register number. Would be the
-         * entire binary, but the last 3 digits (ARE)
-         *
-         * 3 - register, show the number of the register. Would be the
-         * entire binary, but the last 3 digits (ARE)
-         *
-         *
-         * These need to be correlated to the operand itself (source /
-         * dest).
-         *
-         *
-         * In case the 2 operands are registers/pointers to registers, they
-         * would be translated into one line.
-         *
-         * The source should be from 6-8 bits, the dest should be 3-5 bits.
-         * ---------------------
-         */
-
         switch (address_mode) {
             case ERROR:
                 printf("line: %d, Error: Invalid operand - '%s'\n", line_number,
@@ -386,6 +408,30 @@ static int handle_operands_output(int line_number, String line_res, String line,
                  * Cast the number to binary
                  */
                 rest_line_res = handle_number_operand(line_number, operand);
+                if (rest_line_res == NULL) {
+                    exit_code = EXIT_FAILURE;
+
+                    free(operand);
+                    operand = NULL;
+                    break;
+                }
+
+                helper = cast_binary_to_octal(rest_line_res);
+                strcat(line_res, helper);
+
+                free(helper);
+                helper = NULL;
+
+                free(operand);
+                operand = NULL;
+
+                break;
+                /* Label */
+            case DIRECT_ADDRESS_MODE:
+                /**
+                 * Cast the number to binary
+                 */
+                rest_line_res = handle_label_operand(line_number, operand);
                 if (rest_line_res == NULL) {
                     exit_code = EXIT_FAILURE;
 
@@ -495,9 +541,24 @@ static int generate_file_output(String file_path) {
          * Handle output per operand
          * ---------------------
          */
-    }
+        updated_exit_code = handle_operands_output(line_number, line_res, line,
+                                                   opcode, line_label_type);
+        exit_code = update_exit_code(exit_code, updated_exit_code);
+        if (exit_code == EXIT_FAILURE) {
+            free(line_res);
+            line_res = NULL;
 
-    return exit_code;
+            free(opcode);
+            opcode = NULL;
+            continue;
+        }
+
+        free(line_res);
+        line_res = NULL;
+
+        free(opcode);
+        opcode = NULL;
+    }
 }
 
 /**
