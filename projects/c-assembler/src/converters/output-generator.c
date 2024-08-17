@@ -179,16 +179,7 @@ static int handle_opcode(int line_number, String line_res, String opcode) {
         return EXIT_FAILURE;
     }
 
-    /**
-     * ---------------------
-     * Insert line number and opcode binary
-     * ---------------------
-     */
-    strcat(line_res, get_instruction_counter(1));
-    strcat(line_res, " ");
-
     strcat(line_res, opcode_binary);
-
     return EXIT_SUCCESS;
 }
 
@@ -432,8 +423,15 @@ static String handle_register_operand(int line_number, String operand,
     return binary;
 }
 
-static String handle_two_registers_operands(String line_res, String line,
-                                            LabelType label_type) {
+/**
+ * Handle two registers operands
+ *
+ * @param line the line to handle
+ * @param label_type the label type
+ *
+ * @returns the binary code for the two registers
+ */
+static String handle_two_registers_operands(String line, LabelType label_type) {
     String operand;
     String helper1;
     String helper2;
@@ -501,16 +499,25 @@ static int handle_operands_output(int line_number, String line_res, String line,
     int all_registers =
         is_all_operands_are_registers(line, label_type, operand_count);
     if (all_registers) {
-        rest_line_res =
-            handle_two_registers_operands(line_res, line, label_type);
+        rest_line_res = handle_two_registers_operands(line, label_type);
         if (rest_line_res == NULL) {
             exit_code = EXIT_FAILURE;
             return exit_code;
         }
 
-        strcat(line_res, rest_line_res);
+        strcat(line_res, get_instruction_counter(1));
+        strcat(line_res, " ");
+
+        helper = cast_binary_to_octal(rest_line_res);
+        strcat(line_res, helper);
+
         free(rest_line_res);
         rest_line_res = NULL;
+
+        free(helper);
+        helper = NULL;
+
+        strcat(line_res, "\n");
 
         return exit_code;
     }
@@ -581,6 +588,8 @@ static int handle_operands_output(int line_number, String line_res, String line,
 
         free(operand);
         operand = NULL;
+
+        strcat(line_res, "\n");
     }
 
     return exit_code;
@@ -597,6 +606,8 @@ static int generate_file_output(String file_path) {
     LabelType line_label_type;
 
     String line_res = NULL;
+    String rest_line_res = NULL;
+    String helper = NULL;
 
     file = fopen(file_path, "r");
     if (file == NULL) {
@@ -615,9 +626,12 @@ static int generate_file_output(String file_path) {
         }
 
         line_label_type = is_label(line);
-        line_res =
-            (String)malloc(MAX_LINE_OUTPUT * MAX_LINE_LENGTH * sizeof(char));
-        if (line_res == NULL) {
+
+        line_res = (String)malloc(MAX_LINE_OUTPUT * MAX_LINES_FOR_OUTPUT_LINE *
+                                  sizeof(char));
+        rest_line_res = (String)malloc(MAX_LINE_OUTPUT * sizeof(char));
+
+        if (line_res == NULL || rest_line_res == NULL) {
             printf("Error: Could not allocate memory for line\n");
             exit(EXIT_FAILURE);
         }
@@ -626,10 +640,18 @@ static int generate_file_output(String file_path) {
 
         /**
          * ---------------------
+         * Insert line number and opcode binary
+         * ---------------------
+         */
+        strcat(line_res, get_instruction_counter(1));
+        strcat(line_res, " ");
+
+        /**
+         * ---------------------
          * Handle opcode
          * ---------------------
          */
-        updated_exit_code = handle_opcode(line_number, line_res, opcode);
+        updated_exit_code = handle_opcode(line_number, rest_line_res, opcode);
         exit_code = update_exit_code(exit_code, updated_exit_code);
         if (exit_code == EXIT_FAILURE) {
             free(line_res);
@@ -645,8 +667,8 @@ static int generate_file_output(String file_path) {
          * Handle operands for opcode output line
          * ---------------------
          */
-        updated_exit_code = handle_opcode_operands(line_number, line_res, line,
-                                                   opcode, line_label_type);
+        updated_exit_code = handle_opcode_operands(
+            line_number, rest_line_res, line, opcode, line_label_type);
         exit_code = update_exit_code(exit_code, updated_exit_code);
         if (exit_code == EXIT_FAILURE) {
             free(line_res);
@@ -658,7 +680,14 @@ static int generate_file_output(String file_path) {
         }
 
         /* Handle ARE - opcode output line is always 100 */
-        strcat(line_res, "100");
+        strcat(rest_line_res, "100");
+
+        /* Cast the current binary to octal */
+        helper = cast_binary_to_octal(rest_line_res);
+        strcat(line_res, helper);
+
+        free(helper);
+        helper = NULL;
 
         /* Start creating the new line of the output */
         strcat(line_res, "\n");
@@ -666,6 +695,12 @@ static int generate_file_output(String file_path) {
         /**
          * ---------------------
          * Handle output per operand
+         *
+         * @note
+         * This function can add to the output 0-2 lines
+         * We need to pass in the line_res, so we can add the line number
+         *
+         * The function itself convert the output to octal, and enter a new line
          * ---------------------
          */
         updated_exit_code = handle_operands_output(line_number, line_res, line,
