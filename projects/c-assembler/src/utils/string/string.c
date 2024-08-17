@@ -376,8 +376,9 @@ String cast_decimal_to_binary(String number) {
     int num = atoi(number);
     int i = 0;
     String binary = (String)malloc((32 + 1) * sizeof(char));
+    String res = (String)malloc((32 + 1) * sizeof(char));
 
-    if (binary == NULL) {
+    if (binary == NULL || res == NULL) {
         printf("Error(cast_to_binary): Could not allocate memory\n");
         exit(EXIT_FAILURE);
     }
@@ -389,7 +390,19 @@ String cast_decimal_to_binary(String number) {
 
     binary[32] = '\0';
 
-    return binary;
+    /* trim all 0 from left */
+    for (i = 0; i < 32; i++) {
+        if (binary[i] == '1') {
+            break;
+        }
+    }
+
+    strcpy(res, binary + i);
+
+    free(binary);
+    binary = NULL;
+
+    return res;
 }
 
 /**

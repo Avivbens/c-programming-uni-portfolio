@@ -15,10 +15,16 @@ static String get_output_line_counter(int increment) {
     static int instruction_counter = IC_OUTPUT_START_POINT;
     int res = instruction_counter;
     String str_res;
+    String helper = NULL;
 
     instruction_counter += increment;
 
-    str_res = cast_decimal_to_string(res);
+    helper = cast_decimal_to_string(res);
+    str_res = pad_left(helper, 4, '0');
+
+    free(helper);
+    helper = NULL;
+
     return str_res;
 }
 
@@ -331,7 +337,7 @@ static String handle_two_registers_operands(String line, LabelType label_type) {
 
         helper1 = replace_substring(operand, (String) "*", (String) "");
         helper2 = trim_string(helper1);
-        helper3 = cast_decimal_to_binary(helper2);
+        helper3 = cast_decimal_to_binary(helper2 + 1);
 
         strcat(binary, helper3);
 
@@ -377,7 +383,8 @@ static String handle_operands_output(int line_number, String line,
 
     String rest_line_res = NULL;
     String results;
-    String helper = NULL;
+    String helper1 = NULL;
+    String helper2 = NULL;
 
     int i;
     int all_registers =
@@ -394,14 +401,18 @@ static String handle_operands_output(int line_number, String line,
         strcat(results, get_output_line_counter(1));
         strcat(results, " ");
 
-        helper = cast_binary_to_octal(rest_line_res);
-        strcat(results, helper);
+        helper1 = cast_binary_to_octal(rest_line_res);
+        helper2 = pad_left(helper1, 5, '0');
+        strcat(results, helper2);
 
         free(rest_line_res);
         rest_line_res = NULL;
 
-        free(helper);
-        helper = NULL;
+        free(helper1);
+        helper1 = NULL;
+
+        free(helper2);
+        helper2 = NULL;
 
         strcat(results, "\n");
         return results;
@@ -433,8 +444,9 @@ static String handle_operands_output(int line_number, String line,
                     break;
                 }
 
-                helper = cast_binary_to_octal(rest_line_res);
-                strcat(results, helper);
+                helper1 = cast_binary_to_octal(rest_line_res);
+                helper2 = pad_left(helper1, 5, '0');
+                strcat(results, helper2);
                 break;
 
                 /* Label */
@@ -448,8 +460,9 @@ static String handle_operands_output(int line_number, String line,
                     break;
                 }
 
-                helper = cast_binary_to_octal(rest_line_res);
-                strcat(results, helper);
+                helper1 = cast_binary_to_octal(rest_line_res);
+                helper2 = pad_left(helper1, 5, '0');
+                strcat(results, helper2);
                 break;
 
                 /* register */
@@ -468,13 +481,17 @@ static String handle_operands_output(int line_number, String line,
                     break;
                 }
 
-                helper = cast_binary_to_octal(rest_line_res);
-                strcat(results, helper);
+                helper1 = cast_binary_to_octal(rest_line_res);
+                helper2 = pad_left(helper1, 5, '0');
+                strcat(results, helper2);
                 break;
         }
 
-        free(helper);
-        helper = NULL;
+        free(helper1);
+        helper1 = NULL;
+
+        free(helper2);
+        helper2 = NULL;
 
         free(rest_line_res);
         rest_line_res = NULL;
