@@ -399,30 +399,31 @@ String cast_decimal_to_binary(String number) {
  *
  * @param binary_form The binary string to cast to octal
  */
-String cast_binary_to_octal(String binary_form) {
-    int binary_length = strlen(binary_form);
-    int octal_length = binary_length / 3 + (binary_length % 3 != 0);
-    String octal_form = (String)malloc(sizeof(char) * (octal_length + 1));
-    int i, j;
-    int octal_digit;
+String cast_binary_to_octal(String binary) {
+    int len = strlen(binary);
+    int padded_len = len + (3 - len % 3) % 3; /* Calculate the padded length */
+    String padded_binary = (String)malloc(padded_len + 1);
+    String octal = (String)malloc((padded_len / 3) + 1);
+    int i, j, k, value;
 
-    if (octal_form == NULL) {
-        printf("Error(cast_to_octal): Could not allocate memory\n");
-        exit(EXIT_FAILURE);
+    /* Pad the binary string with leading zeros */
+    for (i = 0; i < padded_len - len; i++) {
+        padded_binary[i] = '0';
     }
+    strcpy(padded_binary + i, binary);
 
-    for (i = 0; i < octal_length; i++) {
-        octal_digit = 0;
-        for (j = 0; j < 3; j++) {
-            octal_digit <<= 1;
-            octal_digit += binary_form[i * 3 + j] - '0';
+    /* Convert each chunk of 3 bits to an octal digit */
+    for (i = 0, j = 0; i < padded_len; i += 3, j++) {
+        value = 0;
+        for (k = 0; k < 3; k++) {
+            value = (value << 1) | (padded_binary[i + k] - '0');
         }
-        octal_form[i] = octal_digit + '0';
+        octal[j] = '0' + value;
     }
+    octal[j] = '\0';
 
-    octal_form[octal_length] = '\0';
-
-    return octal_form;
+    free(padded_binary);
+    return octal;
 }
 
 /**
