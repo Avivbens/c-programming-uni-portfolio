@@ -193,6 +193,42 @@ static int handle_opcode(int line_number, String line_res, String opcode) {
 }
 
 /**
+ * Check if all operands are registers
+ *
+ * @param line the line to check
+ * @param label_type the label type
+ * @param operand_count the number of operands
+ *
+ * @returns 1 if all operands are registers, 0 otherwise
+ */
+static int is_all_operands_are_registers(String line, LabelType label_type,
+                                         int operand_count) {
+    String operand = NULL;
+    AddressMode address_mode;
+
+    int i;
+
+    if (operand_count < 2) {
+        return 0;
+    }
+
+    for (i = 0; i < operand_count; i++) {
+        operand = extract_operand(line, label_type, i);
+        address_mode = get_address_mode(operand);
+
+        free(operand);
+        operand = NULL;
+
+        if (address_mode != DIRECT_ACCUMULATED_ADDRESS_MODE &&
+            address_mode != INDIRECT_ACCUMULATED_ADDRESS_MODE) {
+            return 0;
+        }
+    }
+
+    return 1;
+}
+
+/**
  * Generate the binary code for all operands
  *
  * @param line_number the line number
@@ -462,31 +498,8 @@ static int handle_operands_output(int line_number, String line_res, String line,
     String helper = NULL;
 
     int i;
-    int all_registers = 1;
-
-    /**
-     * ---------------------
-     * Handle 2 operands are registers
-     * ---------------------
-     */
-    if (operand_count < 2) {
-        all_registers = 0;
-    } else {
-        for (i = 0; i < operand_count; i++) {
-            operand = extract_operand(line, label_type, i);
-            address_mode = get_address_mode(operand);
-
-            free(operand);
-            operand = NULL;
-
-            if (address_mode != DIRECT_ACCUMULATED_ADDRESS_MODE &&
-                address_mode != INDIRECT_ACCUMULATED_ADDRESS_MODE) {
-                all_registers = 0;
-                break;
-            }
-        }
-    }
-
+    int all_registers =
+        is_all_operands_are_registers(line, label_type, operand_count);
     if (all_registers) {
         rest_line_res =
             handle_two_registers_operands(line_res, line, label_type);
