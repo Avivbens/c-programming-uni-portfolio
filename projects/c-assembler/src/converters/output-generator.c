@@ -113,8 +113,6 @@ static String extract_operand(String line, LabelType label_type,
  *
  * @param operand the operand to generate the address mode for
  *
- * TODO - what about just numbers, without the #?
- *
  * @returns the address mode for the operands
  */
 static AddressMode get_address_mode(String raw_operand) {
@@ -609,7 +607,7 @@ static String handle_data_line(int line_number, String line,
     String *numbers;
     int numbers_amount;
     int exit_code = EXIT_SUCCESS;
-    String binary = (String)malloc(MAX_LINE_OUTPUT * sizeof(char));
+    String output = NULL;
     int i;
 
     int extract_from = line_label_type == NOT_LABEL ? 1 : 2;
@@ -619,6 +617,15 @@ static String handle_data_line(int line_number, String line,
     numbers_string = substring_words(line, extract_from);
     numbers = split_string(numbers_string, (String) ",");
     numbers_amount = get_string_array_length(numbers, sizeof(String));
+
+    output = (String)malloc(MAX_LINE_OUTPUT * numbers_amount * sizeof(char));
+    if (output == NULL) {
+        printf(
+            "line: %d, Error(handle_data_line): Could not allocate memory for "
+            "binary\n",
+            line_number);
+        exit(EXIT_FAILURE);
+    }
 
     for (i = 0; i < numbers_amount; i++) {
         helper1 = trim_string(numbers[i]);
@@ -642,29 +649,93 @@ static String handle_data_line(int line_number, String line,
         /**
          * TODO - should be separated
          */
-        strcat(binary, get_instruction_counter(1));
-        strcat(binary, " ");
-        strcat(binary, helper1);
+        strcat(output, get_instruction_counter(1));
+        strcat(output, " ");
+        strcat(output, helper1);
+        strcat(output, "\n");
 
         free(helper1);
         helper1 = NULL;
 
-        binary = (String)realloc(binary, strlen(binary) + MAX_LINE_OUTPUT);
-        if (binary == NULL) {
-            printf(
-                "Error(handle_data_line): Could not allocate memory for "
-                "binary\n");
-            exit(EXIT_FAILURE);
-        }
-
-        strcat(binary, "\n");
+        free(helper2);
+        helper2 = NULL;
     }
+
+    free(numbers_string);
+    numbers_string = NULL;
 
     if (exit_code == EXIT_FAILURE) {
         return NULL;
     }
 
-    return binary;
+    return output;
+}
+
+/**
+ * Handle string line data with / without label
+ *
+ * @param line_number the line number
+ * @param line the line to handle
+ * @param line_label_type the label type
+ *
+ * @returns NULL if the line is valid, otherwise the new line (after casting to
+ * octal & insert the data counter)
+ */
+static String handle_string_line(int line_number, String line,
+                                 LabelType line_label_type) {
+    String raw_chars_string;
+    String chars_string;
+    int chars_amount;
+    int char_code;
+    String output = NULL;
+    char i;
+
+    int extract_from = line_label_type == NOT_LABEL ? 1 : 2;
+    String helper1;
+    String helper2;
+
+    raw_chars_string = substring_words(line, extract_from);
+    chars_string = trim_string(raw_chars_string);
+    chars_amount = strlen(chars_string) - 2;
+
+    free(raw_chars_string);
+    raw_chars_string = NULL;
+
+    output =
+        (String)malloc(MAX_LINE_OUTPUT * (chars_amount + 1) * sizeof(char));
+    if (output == NULL) {
+        printf(
+            "line: %d, Error(handle_string_line): Could not allocate memory "
+            "for binary\n",
+            line_number);
+        exit(EXIT_FAILURE);
+    }
+
+    for (i = chars_string[1]; i < strlen(chars_string) - 1; i++) {
+        char_code = (int)i;
+        helper1 = cast_decimal_to_string(char_code);
+        helper2 = cast_decimal_to_binary(helper1);
+
+        free(helper1);
+
+        helper1 = cast_binary_to_octal(helper2);
+
+        strcat(output, get_instruction_counter(1));
+        strcat(output, " ");
+        strcat(output, helper1);
+        strcat(output, "\n");
+
+        free(helper1);
+        helper1 = NULL;
+
+        free(helper2);
+        helper2 = NULL;
+    }
+
+    free(chars_string);
+    chars_string = NULL;
+
+    return output;
 }
 
 /**
@@ -752,15 +823,30 @@ static int generate_file_output(String file_path) {
             continue;
         }
 
-        free(helper);
-        helper = NULL;
+        if (line_label_type == LABEL_STRING ||
+            starts_with(helper, (String)LABEL_STRING_PREFIX)) {
+            helper = handle_string_line(line_number, line, line_label_type);
+            if (helper == NULL) {
+                free(line_res);
+                line_res = NULL;
 
-        /**
-         * TODO - handle string
-         */
-        if (line_label_type == LABEL_STRING) {
+                free(rest_line_res);
+                rest_line_res = NULL;
+
+                exit_code = EXIT_FAILURE;
+                continue;
+            }
+
+            strcat(line_res, helper);
+            strcat(line_res, "\n");
+
+            free(helper);
+            helper = NULL;
             continue;
         }
+
+        free(helper);
+        helper = NULL;
 
         opcode = extract_opcode(line, line_label_type);
 
