@@ -356,6 +356,47 @@ static String handle_label_operand(int line_number, String operand) {
 }
 
 /**
+ * Handle operand that is a pointer to register
+ *
+ * @param line_number the line number
+ * @param operand the operand to handle
+ * @param order the order of the operand (0 - source, 1 - dest)
+ *
+ * @returns NULL if the operand is valid, otherwise the new line in binary
+ */
+static String handle_register_pointer_operand(int line_number, String operand,
+                                              int order) {
+    String helper1;
+    String helper2;
+    String binary;
+
+    helper1 = replace_substring(operand, (String) "*", (String) "");
+    helper2 = trim_string(helper1);
+    binary = cast_decimal_to_binary(helper2);
+
+    free(helper1);
+    free(helper2);
+    helper1 = NULL;
+    helper2 = NULL;
+
+    if (binary == NULL) {
+        printf("line: %d, Error: Invalid register - '%s'\n", line_number,
+               operand);
+
+        return NULL;
+    }
+
+    /* Insert empty dest */
+    if (order == 0) {
+        strcat(binary, "000");
+    }
+
+    /* Insert ARE for register - 100 */
+    strcat(binary, "100");
+    return binary;
+}
+
+/**
  * Generate the binary code for all operands
  *
  * @param line_number the line number
@@ -377,8 +418,8 @@ static int handle_operands_output(int line_number, String line_res, String line,
     AddressMode address_mode;
     int exit_code = EXIT_SUCCESS;
 
-    String rest_line_res;
-    String helper;
+    String rest_line_res = NULL;
+    String helper = NULL;
 
     /**
      * TODO - handle case when both operands are registers
@@ -395,10 +436,6 @@ static int handle_operands_output(int line_number, String line_res, String line,
             case ERROR:
                 printf("line: %d, Error: Invalid operand - '%s'\n", line_number,
                        operand);
-
-                free(operand);
-                operand = NULL;
-
                 exit_code = EXIT_FAILURE;
                 break;
 
@@ -410,22 +447,13 @@ static int handle_operands_output(int line_number, String line_res, String line,
                 rest_line_res = handle_number_operand(line_number, operand);
                 if (rest_line_res == NULL) {
                     exit_code = EXIT_FAILURE;
-
-                    free(operand);
-                    operand = NULL;
                     break;
                 }
 
                 helper = cast_binary_to_octal(rest_line_res);
                 strcat(line_res, helper);
-
-                free(helper);
-                helper = NULL;
-
-                free(operand);
-                operand = NULL;
-
                 break;
+
                 /* Label */
             case DIRECT_ADDRESS_MODE:
                 /**
@@ -434,23 +462,33 @@ static int handle_operands_output(int line_number, String line_res, String line,
                 rest_line_res = handle_label_operand(line_number, operand);
                 if (rest_line_res == NULL) {
                     exit_code = EXIT_FAILURE;
-
-                    free(operand);
-                    operand = NULL;
                     break;
                 }
 
                 helper = cast_binary_to_octal(rest_line_res);
                 strcat(line_res, helper);
+                break;
 
-                free(helper);
-                helper = NULL;
+                /* register */
+            case DIRECT_ACCUMULATED_ADDRESS_MODE:
+            case INDIRECT_ACCUMULATED_ADDRESS_MODE:
+                /**
+                 * Cast the number to binary
+                 */
+                rest_line_res =
+                    handle_register_pointer_operand(line_number, operand, i);
+                if (rest_line_res == NULL) {
+                    exit_code = EXIT_FAILURE;
+                    break;
+                }
 
-                free(operand);
-                operand = NULL;
-
+                helper = cast_binary_to_octal(rest_line_res);
+                strcat(line_res, helper);
                 break;
         }
+
+        free(helper);
+        helper = NULL;
 
         free(operand);
         operand = NULL;
