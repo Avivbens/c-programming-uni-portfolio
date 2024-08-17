@@ -595,6 +595,13 @@ static int handle_operands_output(int line_number, String line_res, String line,
     return exit_code;
 }
 
+/**
+ * Generate the output for a file
+ *
+ * @param file_path the path for the file
+ *
+ * @returns EXIT_SUCCESS if the output was successful, otherwise EXIT_FAILURE
+ */
 static int generate_file_output(String file_path) {
     FILE *file;
     int exit_code = EXIT_SUCCESS;
