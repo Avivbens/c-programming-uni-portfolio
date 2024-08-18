@@ -580,7 +580,10 @@ static String handle_data_line(int line_number, String line,
         strcat(output, get_output_line_counter(1));
         strcat(output, " ");
         strcat(output, helper2);
-        strcat(output, "\n");
+
+        if (i + 1 != numbers_amount) {
+            strcat(output, "\n");
+        }
 
         free(helper1);
         helper1 = NULL;
