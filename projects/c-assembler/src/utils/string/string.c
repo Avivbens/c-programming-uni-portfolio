@@ -55,11 +55,19 @@ String pad_left(String str, int length, char padding) {
     int str_len = strlen(str);
     int max_size = str_len > length ? str_len : length;
     String padded_str = (String)malloc(sizeof(char) * (max_size + 1));
-    int i;
+    int i, start;
 
     if (padded_str == NULL) {
         printf("Error(pad_left): Could not allocate memory\n");
         exit(EXIT_FAILURE);
+    }
+
+    if (str_len > length) {
+        start = str_len - length;
+        strncpy(padded_str, str + start, length);
+        padded_str[length] = '\0';
+
+        return padded_str;
     }
 
     for (i = 0; i < length - str_len; i++) {
