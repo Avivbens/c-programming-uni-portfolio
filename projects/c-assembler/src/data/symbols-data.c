@@ -157,10 +157,10 @@ int label_list_size(void) {
  * @param callback The function to call for each label
  * @returns void
  */
-void iterate_labels(void (*callback)(Label*)) {
+void iterate_labels(void (*callback)(Label*, String), String context) {
     LinkedList* symbolsTable = get_labels_list();
 
-    iterate_list(symbolsTable, (void (*)(void*))callback);
+    iterate_list(symbolsTable, (void (*)(void*, String))callback, context);
 }
 
 /**

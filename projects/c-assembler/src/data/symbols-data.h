@@ -37,7 +37,7 @@ int has_label(String name);
 LinkedList *get_labels_list(void);
 
 int label_list_size(void);
-void iterate_labels(void (*callback)(Label*));
+void iterate_labels(void (*callback)(Label *, String), String context);
 
 int get_instruction_counter(int increment);
 int get_data_counter(int increment);
