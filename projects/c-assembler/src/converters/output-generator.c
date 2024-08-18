@@ -621,7 +621,7 @@ static String handle_string_line(int line_number, String line,
     raw_chars_string = NULL;
 
     output =
-        (String)malloc(MAX_LINE_OUTPUT * (chars_amount + 1) * sizeof(char));
+        (String)malloc(MAX_LINE_OUTPUT * (chars_amount + 5) * sizeof(char));
     if (output == NULL) {
         printf(
             "line: %d, Error(handle_string_line): Could not allocate memory "
