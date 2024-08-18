@@ -1,4 +1,5 @@
 #include <stdint.h>
+#include <stdio.h>
 
 #include "../string/string.h"
 
@@ -24,8 +25,9 @@ typedef void (*ValuePrinter)(void *);
 
 LinkedList *create_list(void);
 
-void iterate_list(LinkedList *linkedList, void (*callback)(void *, String),
-                  String context);
+void iterate_list(LinkedList *linkedList,
+                  void (*callback)(void *, String, FILE *), String context,
+                  FILE *exec);
 
 int get_list_size(LinkedList *linkedList);
 

@@ -54,8 +54,9 @@ int get_list_size(LinkedList *linkedList) {
  *
  * @returns void
  */
-void iterate_list(LinkedList *linkedList, void (*callback)(void *, String),
-                  String context) {
+void iterate_list(LinkedList *linkedList,
+                  void (*callback)(void *, String, FILE *), String context,
+                  FILE *exec) {
     ListNode **list = linkedList->list;
     ListNode *node;
     int i;
@@ -67,7 +68,7 @@ void iterate_list(LinkedList *linkedList, void (*callback)(void *, String),
     for (i = 0; i < TABLE_SIZE; i++) {
         node = list[i];
         while (node != NULL) {
-            callback(node->value, context);
+            callback(node->value, context, exec);
             node = node->next;
         }
     }

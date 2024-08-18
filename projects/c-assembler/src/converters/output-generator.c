@@ -864,28 +864,20 @@ static String generate_file_output(String file_path) {
     return file_res;
 }
 
-static void create_extern_file(Label *label, String file_path) {
-    FILE *extern_file = fopen(file_path, "w");
-    if (extern_file == NULL) {
-        printf("Error: Could not create extern file '%s'\n", file_path);
+static void create_extern_file(Label *label, String file_path, FILE *file) {
+    if (label->has_extern == 0) {
         return;
     }
 
-    fprintf(extern_file, "%s %d\n", label->name, label->memory_address);
-
-    fclose(extern_file);
+    fprintf(file, "%s %d\n", label->name, label->memory_address);
 }
 
-static void create_entry_file(Label *label, String file_path) {
-    FILE *entry_file = fopen(file_path, "w");
-    if (entry_file == NULL) {
-        printf("Error: Could not create entry file '%s'\n", file_path);
+static void create_entry_file(Label *label, String file_path, FILE *file) {
+    if (label->has_entry == 0) {
         return;
     }
 
-    fprintf(entry_file, "%s %d\n", label->name, label->memory_address);
-
-    fclose(entry_file);
+    fprintf(file, "%s %d\n", label->name, label->memory_address);
 }
 
 /**
@@ -902,8 +894,34 @@ static void create_entry_extern_files(String file_path) {
         replace_substring(file_path, (String)POST_PROCESS_FILE_EXTENSION,
                           (String)ENTRY_FILE_EXTENSION);
 
-    iterate_labels(create_extern_file, extern_target_file_path);
-    iterate_labels(create_entry_file, entry_target_file_path);
+    FILE *entry_file;
+    FILE *extern_file;
+
+    extern_file = fopen(extern_target_file_path, "w");
+    if (extern_file == NULL) {
+        printf("Error: Could not create extern file '%s'\n", file_path);
+        return;
+    }
+
+    iterate_labels(create_extern_file, extern_target_file_path, extern_file);
+
+    fclose(extern_file);
+
+    entry_file = fopen(entry_target_file_path, "w");
+    if (entry_file == NULL) {
+        printf("Error: Could not create entry file '%s'\n", file_path);
+        return;
+    }
+
+    iterate_labels(create_entry_file, entry_target_file_path, entry_file);
+
+    fclose(entry_file);
+
+    free(extern_target_file_path);
+    extern_target_file_path = NULL;
+
+    free(entry_target_file_path);
+    entry_target_file_path = NULL;
 }
 
 /**
@@ -958,6 +976,7 @@ int handle_output(String *file_paths) {
                 get_data_counter(0));
 
         fprintf(file, "%s", file_res);
+        fclose(file);
 
         create_entry_extern_files(file_paths[i]);
 

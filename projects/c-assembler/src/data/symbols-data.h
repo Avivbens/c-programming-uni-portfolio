@@ -1,3 +1,5 @@
+#include <stdio.h>
+
 #include "../cli/cli-parser.h"
 #include "../constants/constants.h"
 #include "../utils/list/list.h"
@@ -37,7 +39,8 @@ int has_label(String name);
 LinkedList *get_labels_list(void);
 
 int label_list_size(void);
-void iterate_labels(void (*callback)(Label *, String), String context);
+void iterate_labels(void (*callback)(Label *, String, FILE *), String context,
+                    FILE *exec);
 
 int get_instruction_counter(int increment);
 int get_data_counter(int increment);
