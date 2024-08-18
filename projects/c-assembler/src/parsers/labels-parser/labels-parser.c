@@ -480,7 +480,7 @@ static int handle_data_label_reg(String line, int line_number) {
      * ---------------------
      */
     helper_int = add_label(label, LABEL_DATA, get_data_counter(numbers_amount));
-    if (helper_int != 0) {
+    if (helper_int != EXIT_SUCCESS) {
         printf(
             "line: %d, Error: label '%s' can not be added to symbols table\n",
             line_number, label);

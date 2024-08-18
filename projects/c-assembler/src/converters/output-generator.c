@@ -573,13 +573,13 @@ static String handle_data_line(int line_number, String line,
         helper1 = NULL;
 
         helper1 = cast_binary_to_octal(helper2);
+        free(helper2);
 
-        /**
-         * TODO - should be separated
-         */
+        helper2 = pad_left(helper1, 5, '0');
+
         strcat(output, get_output_line_counter(1));
         strcat(output, " ");
-        strcat(output, helper1);
+        strcat(output, helper2);
         strcat(output, "\n");
 
         free(helper1);
@@ -614,9 +614,8 @@ static String handle_string_line(int line_number, String line,
     String raw_chars_string;
     String chars_string;
     int chars_amount;
-    int char_code;
     String output = NULL;
-    char i;
+    int i;
 
     int extract_from = line_label_type == NOT_LABEL ? 1 : 2;
     String helper1;
@@ -639,19 +638,24 @@ static String handle_string_line(int line_number, String line,
         exit(EXIT_FAILURE);
     }
 
-    for (i = chars_string[1]; *(chars_string + (i + 1)) != '\0'; i++) {
-        char_code = (int)i;
-        helper1 = cast_decimal_to_string(char_code);
+    for (i = 1; chars_string[i + 1] != '\0'; i++) {
+        helper1 = cast_decimal_to_string(chars_string[i]);
         helper2 = cast_decimal_to_binary(helper1);
 
         free(helper1);
 
         helper1 = cast_binary_to_octal(helper2);
+        free(helper2);
+
+        helper2 = pad_left(helper1, 5, '0');
 
         strcat(output, get_output_line_counter(1));
         strcat(output, " ");
-        strcat(output, helper1);
-        strcat(output, "\n");
+        strcat(output, helper2);
+
+        if (chars_string[i + 1] != '\0') {
+            strcat(output, "\n");
+        }
 
         free(helper1);
         helper1 = NULL;
@@ -659,6 +663,10 @@ static String handle_string_line(int line_number, String line,
         free(helper2);
         helper2 = NULL;
     }
+
+    strcat(output, get_output_line_counter(1));
+    strcat(output, " ");
+    strcat(output, "00000");
 
     free(chars_string);
     chars_string = NULL;
