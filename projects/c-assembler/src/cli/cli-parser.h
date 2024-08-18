@@ -7,6 +7,8 @@
 #define ORIGINAL_FILE_EXTENSION ".as"
 #define POST_PROCESS_FILE_EXTENSION ".am"
 #define TARGET_FILE_EXTENSION ".ob"
+#define ENTRY_FILE_EXTENSION ".ent"
+#define EXTERN_FILE_EXTENSION ".ext"
 #define MAX_PATH_LENGTH 128
 
 String *get_files_names(int argc, String *argv);

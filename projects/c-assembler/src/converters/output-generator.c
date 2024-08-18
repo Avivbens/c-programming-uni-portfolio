@@ -864,10 +864,46 @@ static String generate_file_output(String file_path) {
     return file_res;
 }
 
+static void create_extern_file(Label *label) {
+    printf("memory_address: %d\n", label->memory_address);
+    printf("name: %s\n", label->name);
+}
+
+static void create_entry_file(Label *label) {
+    printf("memory_address: %d\n", label->memory_address);
+    printf("name: %s\n", label->name);
+}
+
+/**
+ * Create the entry / extern files
+ *
+ * @param file_paths the paths for the files, after the post-process
+ */
+static void create_entry_extern_files(String file_path) {
+    String extern_target_file_path =
+        replace_substring(file_path, (String)POST_PROCESS_FILE_EXTENSION,
+                          (String)EXTERN_FILE_EXTENSION);
+
+    /* String entry_target_file_path =
+        replace_substring(file_path, (String)POST_PROCESS_FILE_EXTENSION,
+                          (String)ENTRY_FILE_EXTENSION); */
+
+    FILE *extern_file = fopen(extern_target_file_path, "w");
+
+    if (extern_file == NULL) {
+        printf("Error: Could not create extern file '%s'\n",
+               extern_target_file_path);
+        return;
+    }
+
+    iterate_labels(create_extern_file);
+    iterate_labels(create_extern_file);
+}
+
 /**
  * Handle the output for the files
  *
- * @param file_paths the paths for the files, without the file extension
+ * @param file_paths the paths for the files, after the post-process
  *
  * @return EXIT_SUCCESS if the output was successful, otherwise EXIT_FAILURE
  */
@@ -916,6 +952,8 @@ int handle_output(String *file_paths) {
                 get_data_counter(0));
 
         fprintf(file, "%s", file_res);
+
+        create_entry_extern_files(file_paths[i]);
 
         free(file_res);
         file_res = NULL;

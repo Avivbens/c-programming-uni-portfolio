@@ -2,6 +2,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 /**
  * The Instruction Counter begins at 100 and increases by the number of memory
@@ -89,6 +90,8 @@ int add_label(String name, LabelType type, int memory_address) {
         new_label->has_extern = type == LABEL_EXTERN ? 1 : 0;
         new_label->has_entry = type == LABEL_ENTRY ? 1 : 0;
 
+        new_label->name = strdup(name);
+
         insert_list(labels, name, new_label, value_size);
         return EXIT_SUCCESS;
     }
@@ -135,6 +138,29 @@ Label* get_label(String name) {
     LinkedList* symbolsTable = get_labels_list();
 
     return (Label*)get_list(symbolsTable, name);
+}
+
+/**
+ * Get the size of the labels list
+ *
+ * @returns int - The size of the list
+ */
+int label_list_size(void) {
+    LinkedList* symbolsTable = get_labels_list();
+
+    return get_list_size(symbolsTable);
+}
+
+/**
+ * Iterate over the labels list
+ *
+ * @param callback The function to call for each label
+ * @returns void
+ */
+void iterate_labels(void (*callback)(Label*)) {
+    LinkedList* symbolsTable = get_labels_list();
+
+    iterate_list(symbolsTable, (void (*)(void*))callback);
 }
 
 /**
