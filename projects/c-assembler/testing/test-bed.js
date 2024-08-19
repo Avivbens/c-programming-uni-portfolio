@@ -9,7 +9,9 @@ const { promisify } = require('node:util')
 const execPrm = promisify(exec)
 
 const PROJECT_NAME = require('../project.json').name
-const RUN_COMMAND = (sourceFile) => `nx run ${PROJECT_NAME}:run --args="--input ${resolve(sourceFile)}"`
+const DIST_FOLDER = resolve(cwd(), 'projects', PROJECT_NAME, 'dist')
+const TESTS_OUTPUT_FOLDER = resolve(cwd(), 'projects', PROJECT_NAME, 'testing', 'outputs')
+const RUN_COMMAND = (sourceFile) => `nx run ${PROJECT_NAME}:run --args="--input ${sourceFile}"`
 
 const COLORS = {
     RED: '\x1b[31m',
@@ -27,37 +29,17 @@ const CONSOLE_COLOR = (color) => `${color}%s\x1b[0m`;
         let errorRate = 0
 
         for (const test of testsConfiguration) {
-            const { expect, sourceFile, target } = test
+            const { cases, sourceFile } = test
             await execPrm(RUN_COMMAND(sourceFile))
 
-            const obExpectFile = await readFile(resolve(cwd(), expect.fileOutput), 'utf-8')
-            const postProcessExpectFile = await readFile(resolve(cwd(), expect.postProcessFileOutput), 'utf-8')
-            const entryExpectFile = await readFile(resolve(cwd(), expect.entryFileOutput), 'utf-8')
-            const externExpectFile = await readFile(resolve(cwd(), expect.externFileOutput), 'utf-8')
+            for (const [caseName, fileName] of Object.entries(cases)) {
+                const expectedContent = await readFile(resolve(TESTS_OUTPUT_FOLDER, fileName), 'utf-8')
+                const targetContent = await readFile(resolve(DIST_FOLDER, fileName), 'utf-8')
 
-            const obTargetFile = await readFile(resolve(cwd(), target.fileOutput), 'utf-8')
-            const postProcessTargetFile = await readFile(resolve(cwd(), target.postProcessFileOutput), 'utf-8')
-            const entryTargetFile = await readFile(resolve(cwd(), target.entryFileOutput), 'utf-8')
-            const externTargetFile = await readFile(resolve(cwd(), target.externFileOutput), 'utf-8')
-
-            if (obExpectFile !== obTargetFile) {
-                console.error(CONSOLE_COLOR(COLORS.RED), `Test failed: ob file is different`)
-                errorRate++
-            }
-
-            if (postProcessExpectFile !== postProcessTargetFile) {
-                console.error(CONSOLE_COLOR(COLORS.RED), `Test failed: post process file is different`)
-                errorRate++
-            }
-
-            if (entryExpectFile !== entryTargetFile) {
-                console.error(CONSOLE_COLOR(COLORS.RED), `Test failed: entry file is different`)
-                errorRate++
-            }
-
-            if (externExpectFile !== externTargetFile) {
-                console.error(CONSOLE_COLOR(COLORS.RED), `Test failed: extern file is different`)
-                errorRate++
+                if (expectedContent !== targetContent) {
+                    console.error(CONSOLE_COLOR(COLORS.RED), `Test failed: ${caseName} is different`)
+                    errorRate++
+                }
             }
         }
 

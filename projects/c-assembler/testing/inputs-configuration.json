@@ -1,17 +1,11 @@
 [
     {
         "sourceFile": "projects/c-assembler/assets/with-macros",
-        "expect": {
-            "postProcessFileOutput": "projects/c-assembler/testing/outputs/with-macros.am",
-            "entryFileOutput": "projects/c-assembler/testing/outputs/with-macros.ent",
-            "externFileOutput": "projects/c-assembler/testing/outputs/with-macros.ext",
-            "fileOutput": "projects/c-assembler/testing/outputs/with-macros.ob"
-        },
-        "target": {
-            "postProcessFileOutput": "projects/c-assembler/dist/with-macros.am",
-            "entryFileOutput": "projects/c-assembler/dist/with-macros.ent",
-            "externFileOutput": "projects/c-assembler/dist/with-macros.ext",
-            "fileOutput": "projects/c-assembler/dist/with-macros.ob"
+        "cases": {
+            "postProcessFileOutput": "with-macros.am",
+            "entryFileOutput": "with-macros.ent",
+            "externFileOutput": "with-macros.ext",
+            "fileOutput": "with-macros.ob"
         }
     }
 ]
