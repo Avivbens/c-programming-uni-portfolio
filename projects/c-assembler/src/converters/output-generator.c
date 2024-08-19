@@ -367,10 +367,10 @@ static String handle_two_registers_operands(String line, LabelType label_type) {
 
         free(helper3);
         helper3 = NULL;
-
-        free(operand);
-        operand = NULL;
     }
+
+    free(operand);
+    operand = NULL;
 
     /* Insert ARE */
     strcat(binary, "100");
