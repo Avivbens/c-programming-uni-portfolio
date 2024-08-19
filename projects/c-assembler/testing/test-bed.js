@@ -34,7 +34,7 @@ const CONSOLE_COLOR = (color) => `${color}%s\x1b[0m`;
             const { cases, sourceFile } = test
 
             const exec = join(ASSETS_FOLDER, sourceFile)
-            await execPrm(RUN_COMMAND(exec))
+            await execPrm(RUN_COMMAND(exec.replace(/\\/g, '/')))
 
             for (const [caseName, fileName] of Object.entries(cases)) {
                 const expectedContent = await readFile(resolve(TESTS_OUTPUT_FOLDER, fileName), 'utf-8')
