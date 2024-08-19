@@ -9,7 +9,7 @@ const { promisify } = require('node:util')
 const execPrm = promisify(exec)
 
 const PROJECT_NAME = require('../project.json').name
-const RUN_COMMAND = (sourceFile) => `nx run ${PROJECT_NAME}:run --args="--input ${sourceFile}"`
+const RUN_COMMAND = (sourceFile) => `nx run ${PROJECT_NAME}:run --args="--input ${resolve(sourceFile)}"`
 
 const COLORS = {
     RED: '\x1b[31m',
