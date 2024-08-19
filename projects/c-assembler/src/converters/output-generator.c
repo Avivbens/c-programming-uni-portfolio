@@ -228,7 +228,8 @@ static String handle_number_operand(int line_number, String operand) {
  * @returns NULL if the operand is valid, otherwise the new line in binary
  */
 static String handle_label_operand(int line_number, String operand,
-                                   LabelType label_type) {
+                                   LabelType label_type,
+                                   String current_output_line_number) {
     Label *label = NULL;
     String binary;
     String helper1;
@@ -250,6 +251,7 @@ static String handle_label_operand(int line_number, String operand,
      * Extern labels should not has any memory address for operands output
      */
     if (label->has_extern) {
+        add_extern(label->name, current_output_line_number);
         memory_address = 0;
     } else {
         if (label_type == LABEL_STRING || label_type == LABEL_DATA) {
@@ -397,6 +399,7 @@ static String handle_operands_output(int line_number, String line,
     int i;
     int all_registers =
         is_all_operands_are_registers(line, label_type, operand_count);
+    String current_output_line_number;
 
     results = (String)malloc(MAX_LINE_OUTPUT * sizeof(char));
 
@@ -427,7 +430,8 @@ static String handle_operands_output(int line_number, String line,
     }
 
     for (i = 0; i < operand_count; i++) {
-        strcat(results, get_output_line_counter(1));
+        current_output_line_number = get_output_line_counter(1);
+        strcat(results, current_output_line_number);
         strcat(results, " ");
 
         operand = extract_operand(line, label_type, i);
@@ -463,7 +467,8 @@ static String handle_operands_output(int line_number, String line,
                  * Cast the number to binary
                  */
                 rest_line_res =
-                    handle_label_operand(line_number, operand, label_type);
+                    handle_label_operand(line_number, operand, label_type,
+                                         current_output_line_number);
                 if (rest_line_res == NULL) {
                     exit_code = EXIT_FAILURE;
                     break;
@@ -864,20 +869,23 @@ static String generate_file_output(String file_path) {
     return file_res;
 }
 
-static void create_extern_file(Label *label, String file_path, FILE *file) {
-    if (label->has_extern == 0) {
+static void append_entry_file(Label *label, String file_path, FILE *file) {
+    if (label->has_entry == 0) {
         return;
     }
 
     fprintf(file, "%s %d\n", label->name, label->memory_address);
 }
 
-static void create_entry_file(Label *label, String file_path, FILE *file) {
-    if (label->has_entry == 0) {
-        return;
-    }
+static void append_extern_file(ExternLabel *extern_label, String file_path,
+                               FILE *file) {
+    int i = 0;
+    int size = get_string_array_length(extern_label->line_addresses);
 
-    fprintf(file, "%s %d\n", label->name, label->memory_address);
+    for (i = 0; i < size; i++) {
+        fprintf(file, "%s %s\n", extern_label->name,
+                extern_label->line_addresses[i]);
+    }
 }
 
 /**
@@ -897,28 +905,23 @@ static void create_entry_extern_files(String file_path) {
     FILE *entry_file;
     FILE *extern_file;
 
-    extern_file = fopen(extern_target_file_path, "w");
-    if (extern_file == NULL) {
-        printf("Error: Could not create extern file '%s'\n", file_path);
-        return;
-    }
-
-    iterate_labels(create_extern_file, extern_target_file_path, extern_file);
-
-    fclose(extern_file);
-
     entry_file = fopen(entry_target_file_path, "w");
     if (entry_file == NULL) {
         printf("Error: Could not create entry file '%s'\n", file_path);
         return;
     }
 
-    iterate_labels(create_entry_file, entry_target_file_path, entry_file);
-
+    iterate_labels(append_entry_file, entry_target_file_path, entry_file);
     fclose(entry_file);
 
-    free(extern_target_file_path);
-    extern_target_file_path = NULL;
+    extern_file = fopen(extern_target_file_path, "w");
+    if (extern_file == NULL) {
+        printf("Error: Could not create extern file '%s'\n", file_path);
+        return;
+    }
+
+    iterate_externs(append_extern_file, extern_target_file_path, extern_file);
+    fclose(extern_file);
 
     free(entry_target_file_path);
     entry_target_file_path = NULL;

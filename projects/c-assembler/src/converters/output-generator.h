@@ -1,5 +1,6 @@
 #include "../common/command.h"
 #include "../constants/constants.h"
+#include "../data/extern-data.h"
 #include "../data/symbols-data.h"
 #include "../parsers/labels-parser/labels-parser.h"
 #include "../utils/number/number.h"
