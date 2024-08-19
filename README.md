@@ -11,6 +11,7 @@ This repository contains the following projects:
 -   [my_add](./projects/task1/my_add/README.md) - Add two numbers in binary form
 -   [my_suffix](./projects/task1/my_suffix/README.md) - Search for matched suffixes in a string based on a given character
 -   [partial-sums](./projects/task2/README.md) - Calculate partial sums by index of an array of doubles
+-   [C Assembler](./projects/c-assembler/README.md) - A simple assembler written in C
 
 ## Introduction
 
