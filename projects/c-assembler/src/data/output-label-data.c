@@ -132,3 +132,14 @@ void debug_output_label_labels(void) {
     printf("Output_label Labels:\n");
     print_list(output_label_list, print_output_label);
 }
+
+/**
+ * Check if an output_label exists in the list
+ *
+ * @param name The output_label name
+ */
+int has_output_label(String name) {
+    LinkedList* symbols_list = get_output_label_list();
+
+    return has_list(symbols_list, name);
+}

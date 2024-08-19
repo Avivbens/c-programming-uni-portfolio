@@ -877,21 +877,32 @@ static String generate_file_output(String file_path) {
     return file_res;
 }
 
+/**
+ * Append the entry file with th output labels
+ */
 static void append_entry_file(OutputLabel *entry_label, String file_path,
                               FILE *file) {
     int i = 0;
     int size = get_string_array_length(entry_label->line_addresses);
+    String output;
 
     if (entry_label->type == OUTPUT_LABEL_EXTERN) {
         return;
     }
 
     for (i = 0; i < size; i++) {
-        fprintf(file, "%s %s\n", entry_label->name,
-                entry_label->line_addresses[i]);
+        output = pad_left(entry_label->line_addresses[i], 4, '0');
+
+        fprintf(file, "%s %s\n", entry_label->name, output);
+
+        free(output);
+        output = NULL;
     }
 }
 
+/**
+ * Append the extern file with the output labels
+ */
 static void append_extern_file(OutputLabel *extern_label, String file_path,
                                FILE *file) {
     int i = 0;
@@ -905,6 +916,33 @@ static void append_extern_file(OutputLabel *extern_label, String file_path,
         fprintf(file, "%s %s\n", extern_label->name,
                 extern_label->line_addresses[i]);
     }
+}
+
+/**
+ * Append the entry file with labels that does not appear as operands, but
+ * defined
+ */
+static void append_non_used_entries(Label *label, String file_path,
+                                    FILE *file) {
+    String output;
+    String helper;
+
+    if (label->has_entry == 0 || label->is_defined == 0) {
+        return;
+    }
+
+    output = cast_decimal_to_string(label->memory_address + SYMBOL_START_POINT);
+    helper = pad_left(output, 4, '0');
+
+    if (has_output_label(label->name) == 0) {
+        fprintf(file, "%s %s\n", label->name, helper);
+    }
+
+    free(output);
+    output = NULL;
+
+    free(helper);
+    helper = NULL;
 }
 
 /**
@@ -929,6 +967,11 @@ static void create_entry_extern_files(String file_path) {
         printf("Error: Could not create entry file '%s'\n", file_path);
         return;
     }
+
+    /**
+     * Print labels with entries but not in use
+     */
+    iterate_labels(append_non_used_entries, entry_target_file_path, entry_file);
 
     iterate_output_labels(append_entry_file, entry_target_file_path,
                           entry_file);

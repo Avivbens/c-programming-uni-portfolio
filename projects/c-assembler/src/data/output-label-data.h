@@ -25,4 +25,6 @@ void iterate_output_labels(void (*callback)(OutputLabel*, String, FILE*),
 int output_label_list_size(void);
 void debug_output_label_labels(void);
 
+int has_output_label(String name);
+
 #endif
