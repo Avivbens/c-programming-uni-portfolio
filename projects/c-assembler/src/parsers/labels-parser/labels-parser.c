@@ -254,7 +254,7 @@ static int handle_no_type_label_reg(String line, int line_number) {
      */
     if (rest != NULL) {
         operands = split_string(rest, (String) ",");
-        operands_amount = get_string_array_length(operands, sizeof(String));
+        operands_amount = get_string_array_length(operands);
     } else {
         operands_amount = 0;
     }
@@ -344,7 +344,7 @@ static int handle_not_label_reg(String line, int line_number) {
     if (opcode != NULL) {
         rest = substring_words(trimmed_line, 1);
         operands = split_string(rest, (String) ",");
-        operands_amount = get_string_array_length(operands, sizeof(String));
+        operands_amount = get_string_array_length(operands);
 
         flag = is_all_operands_are_registers(line, NOT_LABEL, operands_amount);
 
@@ -369,7 +369,7 @@ static int handle_not_label_reg(String line, int line_number) {
 
         rest = substring_words(trimmed_line, 1);
         operands = split_string(rest, (String) ",");
-        operands_amount = get_string_array_length(operands, sizeof(String));
+        operands_amount = get_string_array_length(operands);
 
         get_data_counter(operands_amount);
         exit_code = EXIT_SUCCESS;
@@ -453,7 +453,7 @@ static int handle_data_label_reg(String line, int line_number) {
      * ---------------------
      */
     numbers = split_string(rest, (String) ",");
-    numbers_amount = get_string_array_length(numbers, sizeof(String));
+    numbers_amount = get_string_array_length(numbers);
 
     for (i = 0; i < numbers_amount; i++) {
         helper_str = trim_string(numbers[i]);

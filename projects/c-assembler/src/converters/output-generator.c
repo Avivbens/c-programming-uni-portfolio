@@ -544,7 +544,7 @@ static String handle_data_line(int line_number, String line,
 
     numbers_string = substring_words(line, extract_from);
     numbers = split_string(numbers_string, (String) ",");
-    numbers_amount = get_string_array_length(numbers, sizeof(String));
+    numbers_amount = get_string_array_length(numbers);
 
     output = (String)malloc(MAX_LINE_OUTPUT * numbers_amount * sizeof(char));
     if (output == NULL) {

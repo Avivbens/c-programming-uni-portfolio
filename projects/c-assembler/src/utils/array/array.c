@@ -11,11 +11,10 @@
  *
  * @return length of the array
  */
-int get_string_array_length(void *array, int memory_size_per_cell) {
+int get_string_array_length(String *array) {
     int length = 0;
-    char *ptr = (char *)array;
 
-    while (*(ptr + length * memory_size_per_cell) != '\0') {
+    while (array[length] != NULL) {
         length++;
     }
 
