@@ -2,7 +2,7 @@
 
 const { exec } = require('node:child_process')
 const { readFile } = require('node:fs/promises')
-const { resolve } = require('node:path')
+const { resolve, join } = require('node:path')
 const { cwd } = require('node:process')
 const { promisify } = require('node:util')
 
@@ -11,6 +11,8 @@ const execPrm = promisify(exec)
 const PROJECT_NAME = require('../project.json').name
 const DIST_FOLDER = resolve(cwd(), 'projects', PROJECT_NAME, 'dist')
 const TESTS_OUTPUT_FOLDER = resolve(cwd(), 'projects', PROJECT_NAME, 'testing', 'outputs')
+const ASSETS_FOLDER = join('projects', PROJECT_NAME, 'assets')
+
 const RUN_COMMAND = (sourceFile) => `nx run ${PROJECT_NAME}:run --args="--input ${sourceFile}"`
 
 const COLORS = {
@@ -30,7 +32,9 @@ const CONSOLE_COLOR = (color) => `${color}%s\x1b[0m`;
 
         for (const test of testsConfiguration) {
             const { cases, sourceFile } = test
-            await execPrm(RUN_COMMAND(sourceFile))
+
+            const exec = join(ASSETS_FOLDER, sourceFile)
+            await execPrm(RUN_COMMAND(exec))
 
             for (const [caseName, fileName] of Object.entries(cases)) {
                 const expectedContent = await readFile(resolve(TESTS_OUTPUT_FOLDER, fileName), 'utf-8')

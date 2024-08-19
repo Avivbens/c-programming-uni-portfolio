@@ -1,6 +1,6 @@
 [
     {
-        "sourceFile": "projects/c-assembler/assets/with-macros",
+        "sourceFile": "with-macros",
         "cases": {
             "postProcessFileOutput": "with-macros.am",
             "entryFileOutput": "with-macros.ent",
