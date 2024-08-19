@@ -49,13 +49,13 @@ static void print_label(void* data) {
  * Get the labels list instance
  */
 LinkedList* get_labels_list(void) {
-    static LinkedList* symbolsTable = NULL;
+    static LinkedList* symbols_list = NULL;
 
-    if (symbolsTable == NULL) {
-        symbolsTable = create_list();
+    if (symbols_list == NULL) {
+        symbols_list = create_list();
     }
 
-    return symbolsTable;
+    return symbols_list;
 }
 
 /**
@@ -75,7 +75,7 @@ int add_label(String name, LabelType type, int memory_address) {
     int should_not_define = type == LABEL_EXTERN || type == LABEL_ENTRY;
 
     /**
-     * Register a new label in the symbols table
+     * Register a new label in the symbols list
      */
     if (!has_list(labels, name)) {
         new_label = (Label*)malloc(value_size);
@@ -135,9 +135,9 @@ int add_label(String name, LabelType type, int memory_address) {
  * @returns - A pointer to the label value
  */
 Label* get_label(String name) {
-    LinkedList* symbolsTable = get_labels_list();
+    LinkedList* symbols_list = get_labels_list();
 
-    return (Label*)get_list(symbolsTable, name);
+    return (Label*)get_list(symbols_list, name);
 }
 
 /**
@@ -146,9 +146,9 @@ Label* get_label(String name) {
  * @returns int - The size of the list
  */
 int label_list_size(void) {
-    LinkedList* symbolsTable = get_labels_list();
+    LinkedList* symbols_list = get_labels_list();
 
-    return get_list_size(symbolsTable);
+    return get_list_size(symbols_list);
 }
 
 /**
@@ -159,9 +159,9 @@ int label_list_size(void) {
  */
 void iterate_labels(void (*callback)(Label*, String, FILE*), String context,
                     FILE* exec) {
-    LinkedList* symbolsTable = get_labels_list();
+    LinkedList* symbols_list = get_labels_list();
 
-    iterate_list(symbolsTable, (void (*)(void*, String, FILE*))callback,
+    iterate_list(symbols_list, (void (*)(void*, String, FILE*))callback,
                  context, exec);
 }
 
@@ -172,9 +172,9 @@ void iterate_labels(void (*callback)(Label*, String, FILE*), String context,
  * @returns int - 1 if the label exists, 0 otherwise
  */
 int has_label(String name) {
-    LinkedList* symbolsTable = get_labels_list();
+    LinkedList* symbols_list = get_labels_list();
 
-    return has_list(symbolsTable, name);
+    return has_list(symbols_list, name);
 }
 
 /**
@@ -182,8 +182,8 @@ int has_label(String name) {
  * Used for debugging purposes
  */
 void debug_labels(void) {
-    LinkedList* symbolsTable = get_labels_list();
+    LinkedList* symbols_list = get_labels_list();
 
     printf("Labels:\n");
-    print_list(symbolsTable, print_label);
+    print_list(symbols_list, print_label);
 }
