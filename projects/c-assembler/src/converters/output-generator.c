@@ -1039,7 +1039,7 @@ int handle_output(String *file_paths) {
         }
 
         /* Add the IC / DC at the top */
-        fprintf(file, "   %d %d\n", get_instruction_counter(0),
+        fprintf(file, "  %d %d\n", get_instruction_counter(0),
                 get_data_counter(0));
 
         fprintf(file, "%s", file_res);
