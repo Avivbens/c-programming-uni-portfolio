@@ -5,6 +5,10 @@
 #include <stdlib.h>
 #include <string.h>
 
+#ifdef _WIN32
+#define strdup _strdup
+#endif
+
 /**
  * Extracts the first word from a given line.
  *

@@ -5,6 +5,10 @@
 #include <stdlib.h>
 #include <string.h>
 
+#ifdef _WIN32
+#define strdup _strdup
+#endif
+
 /**
  * TODO - check the allowed address modes
  */

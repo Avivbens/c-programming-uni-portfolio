@@ -4,6 +4,10 @@
 #include <stdlib.h>
 #include <string.h>
 
+#ifdef _WIN32
+#define strdup _strdup
+#endif
+
 /**
  * The Instruction Counter begins at 100 and increases by the number of memory
  * cells each instruction uses.

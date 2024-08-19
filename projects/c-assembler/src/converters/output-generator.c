@@ -5,6 +5,10 @@
 #include <stdlib.h>
 #include <string.h>
 
+#ifdef _WIN32
+#define strdup _strdup
+#endif
+
 /**
  * The Instruction Counter indicate which output line we're currently on
  * Starting from 100

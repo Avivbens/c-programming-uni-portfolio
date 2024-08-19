@@ -4,6 +4,10 @@
 #include <stdlib.h>
 #include <string.h>
 
+#ifdef _WIN32
+#define strdup _strdup
+#endif
+
 /**
  * Hash function to generate a hash value for a given key
  */
