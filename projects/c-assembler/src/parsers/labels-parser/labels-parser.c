@@ -5,35 +5,9 @@
 #include <stdlib.h>
 #include <string.h>
 
-/**
- * The Instruction Counter begins at 100 and increases by the number of memory
- * cells each instruction uses.
- *
- * This indicates the next available memory cell.
- */
-static int get_instruction_counter(int increment) {
-    static int instruction_counter = SYMBOL_START_POINT;
-    int res = instruction_counter;
-
-    instruction_counter += increment;
-    return res;
-}
-
-/**
- * The Data Counter serves a similar purpose as the Instruction Counter but is
- * specifically for data.
- *
- * For safety reasons, they are kept separate.
- *
- * TODO - keep them separate
- */
-static int get_data_counter(int increment) {
-    static int data_counter = SYMBOL_START_POINT + 100;
-    int res = data_counter;
-
-    data_counter += increment;
-    return res;
-}
+#ifdef _WIN32
+#define strdup _strdup
+#endif
 
 /**
  * @param line - the line to check
@@ -284,7 +258,7 @@ static int handle_no_type_label_reg(String line, int line_number) {
      */
     if (rest != NULL) {
         operands = split_string(rest, (String) ",");
-        operands_amount = get_string_array_length(operands, sizeof(String));
+        operands_amount = get_string_array_length(operands);
     } else {
         operands_amount = 0;
     }
@@ -349,6 +323,92 @@ static int handle_no_type_label_reg(String line, int line_number) {
 }
 
 /**
+ * Handle the increment of the instruction & data counter
+ *
+ * @param line - the line to handle
+ * @param line_number - the line number
+ */
+static int handle_not_label_reg(String line, int line_number) {
+    String trimmed_line = trim_string(line);
+    String first_word = NULL;
+    String rest = NULL;
+
+    String *operands = NULL;
+    int operands_amount;
+    int flag;
+
+    OpcodeBinary *opcode;
+    int to_increment_by;
+
+    int exit_code = EXIT_FAILURE;
+
+    first_word = get_word(trimmed_line, 0);
+    opcode = get_command(first_word);
+
+    if (opcode != NULL) {
+        rest = substring_words(trimmed_line, 1);
+        operands = split_string(rest, (String) ",");
+        operands_amount = get_string_array_length(operands);
+
+        flag = is_all_operands_are_registers(line, NOT_LABEL, operands_amount);
+
+        /**
+         * In case both are registers, we need to combine them to one
+         * instruction
+         */
+        if (flag == 0) {
+            to_increment_by = opcode->operands + 1;
+        } else {
+            to_increment_by = 2;
+        }
+
+        get_instruction_counter(to_increment_by);
+        exit_code = EXIT_SUCCESS;
+    }
+
+    if (strcmp(first_word, (String)LABEL_DATA_PREFIX) == 0) {
+        /**
+         * TODO - validate operands number
+         */
+
+        rest = substring_words(trimmed_line, 1);
+        operands = split_string(rest, (String) ",");
+        operands_amount = get_string_array_length(operands);
+
+        get_data_counter(operands_amount);
+        exit_code = EXIT_SUCCESS;
+    }
+
+    if (strcmp(first_word, (String)LABEL_STRING_PREFIX) == 0) {
+        /**
+         * TODO - validate operands number
+         */
+
+        rest = substring_words(trimmed_line, 1);
+        operands_amount = strlen(rest) - 2 + 1;
+
+        get_data_counter(operands_amount);
+        exit_code = EXIT_SUCCESS;
+    }
+
+    if (exit_code == EXIT_FAILURE) {
+        printf("line: %d, Error: '%s' is not a valid command\n", line_number,
+               first_word);
+    }
+
+    free(first_word);
+    first_word = NULL;
+
+    free(trimmed_line);
+    trimmed_line = NULL;
+
+    free(rest);
+    rest = NULL;
+
+    return exit_code;
+}
+
+/**
  * Handle the registration of a data label
  *
  * @param line - the line to handle
@@ -397,7 +457,7 @@ static int handle_data_label_reg(String line, int line_number) {
      * ---------------------
      */
     numbers = split_string(rest, (String) ",");
-    numbers_amount = get_string_array_length(numbers, sizeof(String));
+    numbers_amount = get_string_array_length(numbers);
 
     for (i = 0; i < numbers_amount; i++) {
         helper_str = trim_string(numbers[i]);
@@ -424,7 +484,7 @@ static int handle_data_label_reg(String line, int line_number) {
      * ---------------------
      */
     helper_int = add_label(label, LABEL_DATA, get_data_counter(numbers_amount));
-    if (helper_int != 0) {
+    if (helper_int != EXIT_SUCCESS) {
         printf(
             "line: %d, Error: label '%s' can not be added to symbols table\n",
             line_number, label);
@@ -451,107 +511,15 @@ static int handle_data_label_reg(String line, int line_number) {
  * @returns EXIT_SUCCESS if the entry label was registered successfully
  */
 static int handle_entry_label_reg(String line, int line_number) {
-    String opcode = get_word(line, 1);
-    String rest = substring_words(line, 2);
-
-    /**
-     * -----------------------
-     * Extract the label name
-     * -----------------------
-     */
-    String label_raw = get_word(line, 0);
-    String label = replace_substring(label_raw, (String) ":", (String) "");
-
-    String helper_str;
+    String label = get_word(line, 1);
     int helper_int;
 
-    String *operands;
-    int operands_amount = 0;
-    OpcodeCheck res;
-
-    free(label_raw);
-    label_raw = NULL;
-
-    /**
-     * ---------------------
-     * Clean the rest string
-     * ---------------------
-     */
-    helper_str = trim_string(rest);
-    free(rest);
-    rest = helper_str;
-
-    /**
-     * ---------------------
-     * Extract the operands
-     * ---------------------
-     */
-    operands = split_string(rest, (String) ",");
-    operands_amount = get_string_array_length(operands, sizeof(String));
-
-    free_string_array_recursively(operands, operands_amount);
-    operands = NULL;
-
-    free(rest);
-    rest = NULL;
-
-    /**
-     * ---------------------
-     * Case: Opcode not exists
-     * ---------------------
-     */
-    res = validate_opcode_operand(opcode, operands_amount);
-    if (res == NOT_EXISTS) {
+    helper_int = add_label(label, LABEL_ENTRY, 0);
+    if (helper_int == EXIT_FAILURE) {
         printf(
-            "line: %d, Error(handle_entry_label_reg): Opcode '%s' not exists! "
-            "\n",
-            line_number, opcode);
-
-        free(label);
-        label = NULL;
-
-        free(opcode);
-        opcode = NULL;
-
-        return EXIT_FAILURE;
-    }
-
-    /**
-     * ---------------------
-     * Case: Invalid operands
-     * ---------------------
-     */
-    if (res == INVALID_OPERANDS) {
-        printf(
-            "line: %d, Error(handle_entry_label_reg): Opcode '%s' can not "
-            "accept %d operands \n",
-            line_number, opcode, operands_amount);
-
-        free(label);
-        label = NULL;
-
-        free(opcode);
-        opcode = NULL;
-
-        return EXIT_FAILURE;
-    }
-
-    free(opcode);
-    opcode = NULL;
-
-    /**
-     * ---------------------
-     * Case: global label error
-     * ---------------------
-     */
-    helper_int = add_label(label, LABEL_ENTRY,
-                           get_instruction_counter(operands_amount + 1));
-
-    if (helper_int != 0) {
-        printf(
-            "Error(handle_entry_label_reg): label '%s' can not be added to "
-            "symbols table\n",
-            label);
+            "line: %d, Error(handle_entry_label_reg): label '%s' can not be "
+            "added to symbols table\n",
+            line_number, label);
 
         free(label);
         label = NULL;
@@ -644,6 +612,8 @@ static int label_registration(String file_path) {
                 continue;
 
             case NOT_LABEL:
+                res = handle_not_label_reg(line, line_number);
+                exit_code = update_exit_code(exit_code, res);
                 continue;
 
             case NOT_LABEL_TYPE:

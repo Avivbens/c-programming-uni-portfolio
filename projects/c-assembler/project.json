@@ -11,6 +11,7 @@
                 "parallel": false
             }
         },
+        "test": {},
         "format": {},
         "format-check": {}
     },

@@ -1,1 +1,11 @@
-[]
+[
+    {
+        "sourceFile": "with-macros",
+        "cases": {
+            "postProcessFileOutput": "with-macros.am",
+            "entryFileOutput": "with-macros.ent",
+            "externFileOutput": "with-macros.ext",
+            "fileOutput": "with-macros.ob"
+        }
+    }
+]

@@ -5,6 +5,10 @@
 #include <stdlib.h>
 #include <string.h>
 
+#ifdef _WIN32
+#define strdup _strdup
+#endif
+
 /**
  * Extracts the first word from a given line.
  *
@@ -55,11 +59,19 @@ String pad_left(String str, int length, char padding) {
     int str_len = strlen(str);
     int max_size = str_len > length ? str_len : length;
     String padded_str = (String)malloc(sizeof(char) * (max_size + 1));
-    int i;
+    int i, start;
 
     if (padded_str == NULL) {
         printf("Error(pad_left): Could not allocate memory\n");
         exit(EXIT_FAILURE);
+    }
+
+    if (str_len > length) {
+        start = str_len - length;
+        strncpy(padded_str, str + start, length);
+        padded_str[length] = '\0';
+
+        return padded_str;
     }
 
     for (i = 0; i < length - str_len; i++) {
@@ -376,8 +388,9 @@ String cast_decimal_to_binary(String number) {
     int num = atoi(number);
     int i = 0;
     String binary = (String)malloc((32 + 1) * sizeof(char));
+    String res = (String)malloc((32 + 1) * sizeof(char));
 
-    if (binary == NULL) {
+    if (binary == NULL || res == NULL) {
         printf("Error(cast_to_binary): Could not allocate memory\n");
         exit(EXIT_FAILURE);
     }
@@ -389,7 +402,19 @@ String cast_decimal_to_binary(String number) {
 
     binary[32] = '\0';
 
-    return binary;
+    /* trim all 0 from left */
+    for (i = 0; i < 32; i++) {
+        if (binary[i] == '1') {
+            break;
+        }
+    }
+
+    strcpy(res, binary + i);
+
+    free(binary);
+    binary = NULL;
+
+    return res;
 }
 
 /**
@@ -399,30 +424,31 @@ String cast_decimal_to_binary(String number) {
  *
  * @param binary_form The binary string to cast to octal
  */
-String cast_binary_to_octal(String binary_form) {
-    int binary_length = strlen(binary_form);
-    int octal_length = binary_length / 3 + (binary_length % 3 != 0);
-    String octal_form = (String)malloc(sizeof(char) * (octal_length + 1));
-    int i, j;
-    int octal_digit;
+String cast_binary_to_octal(String binary) {
+    int len = strlen(binary);
+    int padded_len = len + (3 - len % 3) % 3; /* Calculate the padded length */
+    String padded_binary = (String)malloc(padded_len + 1);
+    String octal = (String)malloc((padded_len / 3) + 1);
+    int i, j, k, value;
 
-    if (octal_form == NULL) {
-        printf("Error(cast_to_octal): Could not allocate memory\n");
-        exit(EXIT_FAILURE);
+    /* Pad the binary string with leading zeros */
+    for (i = 0; i < padded_len - len; i++) {
+        padded_binary[i] = '0';
     }
+    strcpy(padded_binary + i, binary);
 
-    for (i = 0; i < octal_length; i++) {
-        octal_digit = 0;
-        for (j = 0; j < 3; j++) {
-            octal_digit <<= 1;
-            octal_digit += binary_form[i * 3 + j] - '0';
+    /* Convert each chunk of 3 bits to an octal digit */
+    for (i = 0, j = 0; i < padded_len; i += 3, j++) {
+        value = 0;
+        for (k = 0; k < 3; k++) {
+            value = (value << 1) | (padded_binary[i + k] - '0');
         }
-        octal_form[i] = octal_digit + '0';
+        octal[j] = '0' + value;
     }
+    octal[j] = '\0';
 
-    octal_form[octal_length] = '\0';
-
-    return octal_form;
+    free(padded_binary);
+    return octal;
 }
 
 /**

@@ -1,16 +1,19 @@
 #! /usr/bin/env node
 
 const { exec } = require('node:child_process')
-const { mkdtemp, writeFile } = require('node:fs/promises')
-const { resolve } = require('node:path')
-const { cwd, exit } = require('node:process')
+const { readFile } = require('node:fs/promises')
+const { resolve, join } = require('node:path')
+const { cwd } = require('node:process')
 const { promisify } = require('node:util')
 
 const execPrm = promisify(exec)
 
 const PROJECT_NAME = require('../project.json').name
-const DIST_PATH = `dist/${PROJECT_NAME}`
-const EXECUTABLE = `${DIST_PATH}/${PROJECT_NAME}`
+const DIST_FOLDER = resolve(cwd(), 'projects', PROJECT_NAME, 'dist')
+const TESTS_OUTPUT_FOLDER = resolve(cwd(), 'projects', PROJECT_NAME, 'testing', 'outputs')
+const ASSETS_FOLDER = join('projects', PROJECT_NAME, 'assets')
+
+const RUN_COMMAND = (sourceFile) => `nx run ${PROJECT_NAME}:run --args="--input ${sourceFile}"`
 
 const COLORS = {
     RED: '\x1b[31m',
@@ -19,61 +22,30 @@ const COLORS = {
     RED_BACKGROUND: '\x1b[41m',
     GREEN_BACKGROUND: '\x1b[42m',
 }
-const CONSOLE_COLOR = (color) => `${color}%s\x1b[0m`
-
-async function createTempFile() {
-    const tempDirName = await mkdtemp('dist/test-')
-    const tempFileName = `${tempDirName}/input.txt`
-    await writeFile(tempFileName, '')
-
-    return { tempDirName, tempFileName }
-}
-
-function compareArrays(arr1, arr2) {
-    if (arr1.length !== arr2.length) {
-        return false
-    }
-
-    for (let i = 0; i < arr1.length; i++) {
-        if (arr1[i] !== arr2[i]) {
-            return false
-        }
-    }
-
-    return true
-}
-
-function extractResults(rawOutput) {
-    const lines = rawOutput.split('\n')
-    if (!lines.length) {
-        exit(1)
-    }
-
-    const RESULTS_HEADER = `The results are: `
-    const resultsIndex = lines.findIndex((line) => line.includes(RESULTS_HEADER))
-    if (resultsIndex === -1) {
-        exit(1)
-    }
-
-    const allResults = lines.slice(resultsIndex + 1)
-
-    const parsedResults = allResults.filter(Boolean).map(s => s.trim()).map(Number)
-    return parsedResults
-}
-
-async function cleanup(tempDirectory) {
-    await execPrm(`rm -rf ${tempDirectory}`, { shell: true })
-}
+const CONSOLE_COLOR = (color) => `${color}%s\x1b[0m`;
 
 ; (async () => {
-    const { tempDirName, tempFileName } = await createTempFile()
-
     try {
         const testsConfiguration = require('./inputs-configuration.json')
 
         let errorRate = 0
 
-        // TODO: Implement the tests
+        for (const test of testsConfiguration) {
+            const { cases, sourceFile } = test
+
+            const exec = join(ASSETS_FOLDER, sourceFile)
+            await execPrm(RUN_COMMAND(exec.replace(/\\/g, '/')))
+
+            for (const [caseName, fileName] of Object.entries(cases)) {
+                const expectedContent = await readFile(resolve(TESTS_OUTPUT_FOLDER, fileName), 'utf-8')
+                const targetContent = await readFile(resolve(DIST_FOLDER, fileName), 'utf-8')
+
+                if (expectedContent !== targetContent) {
+                    console.error(CONSOLE_COLOR(COLORS.RED), `Test failed: ${caseName} is different`)
+                    errorRate++
+                }
+            }
+        }
 
         if (!errorRate) {
             console.log(CONSOLE_COLOR(COLORS.GREEN_BACKGROUND), 'All tests passed successfully')
@@ -83,6 +55,5 @@ async function cleanup(tempDirectory) {
         console.error(CONSOLE_COLOR(COLORS.RED_BACKGROUND), `${errorRate} tests failed`)
         throw new Error('Tests failed')
     } finally {
-        await cleanup(tempDirName)
     }
 })()

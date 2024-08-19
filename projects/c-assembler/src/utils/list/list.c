@@ -4,6 +4,10 @@
 #include <stdlib.h>
 #include <string.h>
 
+#ifdef _WIN32
+#define strdup _strdup
+#endif
+
 /**
  * Hash function to generate a hash value for a given key
  */
@@ -16,6 +20,62 @@ static unsigned int hash(String key) {
         value = value * 37 + key[i];
     }
     return value % TABLE_SIZE;
+}
+
+/**
+ * Get the size of the linkedList
+ * @returns The size of the linkedList
+ *
+ * @note The size of the linkedList is the number of key-value pairs in the
+ * linkedList
+ */
+int get_list_size(LinkedList *linkedList) {
+    ListNode **list = linkedList->list;
+    ListNode *node;
+    int i;
+    int size = 0;
+
+    if (list == NULL) {
+        return 0;
+    }
+
+    for (i = 0; i < TABLE_SIZE; i++) {
+        node = list[i];
+        while (node != NULL) {
+            size++;
+            node = node->next;
+        }
+    }
+
+    return size;
+}
+
+/**
+ * Iterate over the linkedList
+ *
+ * @param linkedList The linkedList to iterate over
+ * @param callback The function to call for each value in the linkedList
+ *
+ * @returns void
+ */
+void iterate_list(LinkedList *linkedList,
+                  void (*callback)(void *, String, FILE *), String context,
+                  FILE *exec) {
+    ListNode **list = linkedList->list;
+    ListNode *node;
+    int i;
+
+    if (list == NULL) {
+        return;
+    }
+
+    for (i = 0; i < TABLE_SIZE; i++) {
+        node = list[i];
+        while (node != NULL) {
+            callback(node->value, context, exec);
+            node = node->next;
+        }
+    }
 }
 
 /**

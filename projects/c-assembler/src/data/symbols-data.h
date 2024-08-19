@@ -1,3 +1,5 @@
+#include <stdio.h>
+
 #include "../cli/cli-parser.h"
 #include "../constants/constants.h"
 #include "../utils/list/list.h"
@@ -21,6 +23,8 @@ typedef struct Label {
     int is_defined;
     int has_extern;
     int has_entry;
+    String name;
+    LabelType type;
 } Label;
 
 #define FILL_SUCCESS 1
@@ -34,6 +38,13 @@ int add_label(String name, LabelType type, int memory_address);
 Label *get_label(String name);
 int has_label(String name);
 LinkedList *get_labels_list(void);
+
+int label_list_size(void);
+void iterate_labels(void (*callback)(Label *, String, FILE *), String context,
+                    FILE *exec);
+
+int get_instruction_counter(int increment);
+int get_data_counter(int increment);
 
 void debug_labels(void);
 

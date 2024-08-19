@@ -5,20 +5,30 @@
 #include <stdlib.h>
 #include <string.h>
 
+#ifdef _WIN32
+#define strdup _strdup
+#endif
+
 /**
  * The Instruction Counter indicate which output line we're currently on
  * Starting from 100
  *
  * @attention - free this memory after use
  */
-static String get_instruction_counter(int increment) {
+static String get_output_line_counter(int increment) {
     static int instruction_counter = IC_OUTPUT_START_POINT;
     int res = instruction_counter;
     String str_res;
+    String helper = NULL;
 
     instruction_counter += increment;
 
-    str_res = cast_decimal_to_string(res);
+    helper = cast_decimal_to_string(res);
+    str_res = pad_left(helper, 4, '0');
+
+    free(helper);
+    helper = NULL;
+
     return str_res;
 }
 
@@ -82,89 +92,6 @@ static String get_binary_by_address_mode(AddressMode address_mode) {
 }
 
 /**
- * Extract the operand from a line
- *
- * @attention - free this memory after use
- *
- * @param line the line to extract the operand from
- * @param label_type the label type of the line
- * @param operand_index the index of the operand to extract, starts from 0
- *
- * @returns the operand
- */
-static String extract_operand(String line, LabelType label_type,
-                              int operand_index) {
-    String helper;
-    String operand;
-    String *operands;
-    int operands_prefix = label_type == NOT_LABEL ? 1 : 2;
-    String operands_string = substring_words(line, operands_prefix);
-
-    operands = split_string(operands_string, (String) ",");
-
-    helper = operands[operand_index];
-    operand = trim_string(helper);
-
-    return operand;
-}
-
-/**
- * Generate the address mode for an operand
- *
- * @param operand the operand to generate the address mode for
- *
- * @returns the address mode for the operands
- */
-static AddressMode get_address_mode(String raw_operand) {
-    String operand = trim_string(raw_operand);
-    String helper;
-
-    if (starts_with(operand, (String) "#")) {
-        if (is_number(operand + 1)) {
-            return IMMEDIATE_ADDRESS_MODE;
-        }
-
-        return ERROR;
-    }
-
-    /**
-     * Indirect access to registers
-     */
-    if (starts_with(operand, (String) "*")) {
-        /**
-         * Validate the operand is a register
-         */
-        helper = replace_substring(operand, (String) "*", (String) "");
-        if (!is_register(helper)) {
-            free(helper);
-            helper = NULL;
-
-            return ERROR;
-        }
-
-        free(helper);
-        helper = NULL;
-        return INDIRECT_ACCUMULATED_ADDRESS_MODE;
-    }
-
-    /**
-     * In case the operands are a label, we need to check if it exists
-     */
-    if (has_label(operand)) {
-        return DIRECT_ADDRESS_MODE;
-    }
-
-    /**
-     * Validate the operand is a register
-     */
-    if (is_register(operand)) {
-        return DIRECT_ACCUMULATED_ADDRESS_MODE;
-    }
-
-    return ERROR;
-}
-
-/**
  * Handle the opcode binary generation
  */
 static int handle_opcode(int line_number, String line_res, String opcode) {
@@ -179,42 +106,6 @@ static int handle_opcode(int line_number, String line_res, String opcode) {
 
     strcat(line_res, opcode_binary);
     return EXIT_SUCCESS;
-}
-
-/**
- * Check if all operands are registers
- *
- * @param line the line to check
- * @param label_type the label type
- * @param operand_count the number of operands
- *
- * @returns 1 if all operands are registers, 0 otherwise
- */
-static int is_all_operands_are_registers(String line, LabelType label_type,
-                                         int operand_count) {
-    String operand = NULL;
-    AddressMode address_mode;
-
-    int i;
-
-    if (operand_count < 2) {
-        return 0;
-    }
-
-    for (i = 0; i < operand_count; i++) {
-        operand = extract_operand(line, label_type, i);
-        address_mode = get_address_mode(operand);
-
-        free(operand);
-        operand = NULL;
-
-        if (address_mode != DIRECT_ACCUMULATED_ADDRESS_MODE &&
-            address_mode != INDIRECT_ACCUMULATED_ADDRESS_MODE) {
-            return 0;
-        }
-    }
-
-    return 1;
 }
 
 /**
@@ -248,15 +139,15 @@ static int handle_opcode_operands(int line_number, String line_res, String line,
      * There are 3 cases - no operands, one operand (only source), two
      * operands
      */
-    for (i = 2; i < 0; i++) {
-        if (i >= operand_count) {
+    for (i = 2; i >= 1; i--) {
+        if (i > operand_count) {
             /**
              * Insert empty data into the results, in case there is no
              * operand
              */
 
             strcat(line_res, "0000");
-            break;
+            continue;
         }
 
         /**
@@ -340,11 +231,13 @@ static String handle_number_operand(int line_number, String operand) {
  *
  * @returns NULL if the operand is valid, otherwise the new line in binary
  */
-static String handle_label_operand(int line_number, String operand) {
+static String handle_label_operand(int line_number, String operand,
+                                   String current_output_line_number) {
     Label *label = NULL;
     String binary;
     String helper1;
     int memory_address;
+    int label_ic_to_add;
 
     helper1 = trim_string(operand);
     label = get_label(helper1);
@@ -357,9 +250,33 @@ static String handle_label_operand(int line_number, String operand) {
         return NULL;
     }
 
-    memory_address = label->memory_address;
+    /**
+     * Extern labels should not has any memory address for operands output
+     */
+    if (label->has_extern) {
+        memory_address = 0;
+    } else {
+        if (label->type == LABEL_STRING || label->type == LABEL_DATA) {
+            label_ic_to_add = get_instruction_counter(0);
+        } else {
+            label_ic_to_add = 0;
+        }
+
+        memory_address =
+            label->memory_address + SYMBOL_START_POINT + label_ic_to_add;
+    }
+
     helper1 = cast_decimal_to_string(memory_address);
     binary = cast_decimal_to_binary(helper1);
+
+    if (label->has_extern) {
+        add_output_label(label->name, current_output_line_number,
+                         OUTPUT_LABEL_EXTERN);
+    }
+
+    if (label->has_entry) {
+        add_output_label(label->name, helper1, OUTPUT_LABEL_ENTRY);
+    }
 
     free(helper1);
     helper1 = NULL;
@@ -380,19 +297,19 @@ static String handle_label_operand(int line_number, String operand) {
  *
  * @param line_number the line number
  * @param operand the operand to handle
- * @param order the order of the operand (0 - source, 1 - dest)
+ * @param is_dest if the operand is a destination
  *
  * @returns NULL if the operand is valid, otherwise the new line in binary
  */
 static String handle_register_operand(int line_number, String operand,
-                                      int order) {
+                                      int is_dest) {
     String helper1;
     String helper2;
     String binary;
 
     helper1 = replace_substring(operand, (String) "*", (String) "");
     helper2 = trim_string(helper1);
-    binary = cast_decimal_to_binary(helper2);
+    binary = cast_decimal_to_binary(helper2 + 1);
 
     free(helper1);
     free(helper2);
@@ -407,7 +324,7 @@ static String handle_register_operand(int line_number, String operand,
     }
 
     /* Insert empty dest */
-    if (order == 0) {
+    if (is_dest != 1) {
         strcat(binary, "000");
     }
 
@@ -441,7 +358,7 @@ static String handle_two_registers_operands(String line, LabelType label_type) {
 
         helper1 = replace_substring(operand, (String) "*", (String) "");
         helper2 = trim_string(helper1);
-        helper3 = cast_decimal_to_binary(helper2);
+        helper3 = cast_decimal_to_binary(helper2 + 1);
 
         strcat(binary, helper3);
 
@@ -453,10 +370,10 @@ static String handle_two_registers_operands(String line, LabelType label_type) {
 
         free(helper3);
         helper3 = NULL;
-
-        free(operand);
-        operand = NULL;
     }
+
+    free(operand);
+    operand = NULL;
 
     /* Insert ARE */
     strcat(binary, "100");
@@ -472,52 +389,61 @@ static String handle_two_registers_operands(String line, LabelType label_type) {
  * @param opcode the opcode
  * @param label_type the label type
  *
- * @throw EXIT_FAILURE if the operand is invalid
- * @returns EXIT_SUCCESS if the operand is valid
+ * @returns The new line (after casting to octal & insert the data counter)
+ * In case of an error, NULL is returned
  *
  * @note
  * This function handles the additional lines (0-2 additional)
  */
-static int handle_operands_output(int line_number, String line_res, String line,
-                                  String opcode, LabelType label_type) {
+static String handle_operands_output(int line_number, String line,
+                                     String opcode, LabelType label_type) {
     int operand_count = get_operands_number_per_opcode(opcode);
     AddressMode address_mode;
     String operand = NULL;
     int exit_code = EXIT_SUCCESS;
 
     String rest_line_res = NULL;
-    String helper = NULL;
+    String results;
+    String helper1 = NULL;
+    String helper2 = NULL;
 
     int i;
     int all_registers =
         is_all_operands_are_registers(line, label_type, operand_count);
+    String current_output_line_number;
+
+    results = (String)malloc(MAX_LINE_OUTPUT * sizeof(char));
+
     if (all_registers) {
         rest_line_res = handle_two_registers_operands(line, label_type);
         if (rest_line_res == NULL) {
-            exit_code = EXIT_FAILURE;
-            return exit_code;
+            return NULL;
         }
 
-        strcat(line_res, get_instruction_counter(1));
-        strcat(line_res, " ");
+        strcat(results, get_output_line_counter(1));
+        strcat(results, " ");
 
-        helper = cast_binary_to_octal(rest_line_res);
-        strcat(line_res, helper);
+        helper1 = cast_binary_to_octal(rest_line_res);
+        helper2 = pad_left(helper1, 5, '0');
+        strcat(results, helper2);
 
         free(rest_line_res);
         rest_line_res = NULL;
 
-        free(helper);
-        helper = NULL;
+        free(helper1);
+        helper1 = NULL;
 
-        strcat(line_res, "\n");
+        free(helper2);
+        helper2 = NULL;
 
-        return exit_code;
+        strcat(results, "\n");
+        return results;
     }
 
     for (i = 0; i < operand_count; i++) {
-        strcat(line_res, get_instruction_counter(1));
-        strcat(line_res, " ");
+        current_output_line_number = get_output_line_counter(1);
+        strcat(results, current_output_line_number);
+        strcat(results, " ");
 
         operand = extract_operand(line, label_type, i);
         address_mode = get_address_mode(operand);
@@ -541,8 +467,9 @@ static int handle_operands_output(int line_number, String line_res, String line,
                     break;
                 }
 
-                helper = cast_binary_to_octal(rest_line_res);
-                strcat(line_res, helper);
+                helper1 = cast_binary_to_octal(rest_line_res);
+                helper2 = pad_left(helper1, 5, '0');
+                strcat(results, helper2);
                 break;
 
                 /* Label */
@@ -550,14 +477,16 @@ static int handle_operands_output(int line_number, String line_res, String line,
                 /**
                  * Cast the number to binary
                  */
-                rest_line_res = handle_label_operand(line_number, operand);
+                rest_line_res = handle_label_operand(
+                    line_number, operand, current_output_line_number);
                 if (rest_line_res == NULL) {
                     exit_code = EXIT_FAILURE;
                     break;
                 }
 
-                helper = cast_binary_to_octal(rest_line_res);
-                strcat(line_res, helper);
+                helper1 = cast_binary_to_octal(rest_line_res);
+                helper2 = pad_left(helper1, 5, '0');
+                strcat(results, helper2);
                 break;
 
                 /* register */
@@ -565,29 +494,43 @@ static int handle_operands_output(int line_number, String line_res, String line,
             case INDIRECT_ACCUMULATED_ADDRESS_MODE:
                 /**
                  * Cast the number to binary
+                 *
+                 * The register is a destination if it's the second operand, or
+                 * there is only 1 operand
                  */
-                rest_line_res =
-                    handle_register_operand(line_number, operand, i);
+                rest_line_res = handle_register_operand(
+                    line_number, operand, operand_count == 1 || i == 1);
                 if (rest_line_res == NULL) {
                     exit_code = EXIT_FAILURE;
                     break;
                 }
 
-                helper = cast_binary_to_octal(rest_line_res);
-                strcat(line_res, helper);
+                helper1 = cast_binary_to_octal(rest_line_res);
+                helper2 = pad_left(helper1, 5, '0');
+                strcat(results, helper2);
                 break;
         }
 
-        free(helper);
-        helper = NULL;
+        free(helper1);
+        helper1 = NULL;
 
-        strcat(line_res, "\n");
+        free(helper2);
+        helper2 = NULL;
+
+        free(rest_line_res);
+        rest_line_res = NULL;
+
+        strcat(results, "\n");
     }
 
     free(operand);
     operand = NULL;
 
-    return exit_code;
+    if (exit_code == EXIT_FAILURE) {
+        return NULL;
+    }
+
+    return results;
 }
 
 /**
@@ -616,7 +559,7 @@ static String handle_data_line(int line_number, String line,
 
     numbers_string = substring_words(line, extract_from);
     numbers = split_string(numbers_string, (String) ",");
-    numbers_amount = get_string_array_length(numbers, sizeof(String));
+    numbers_amount = get_string_array_length(numbers);
 
     output = (String)malloc(MAX_LINE_OUTPUT * numbers_amount * sizeof(char));
     if (output == NULL) {
@@ -645,14 +588,17 @@ static String handle_data_line(int line_number, String line,
         helper1 = NULL;
 
         helper1 = cast_binary_to_octal(helper2);
+        free(helper2);
 
-        /**
-         * TODO - should be separated
-         */
-        strcat(output, get_instruction_counter(1));
+        helper2 = pad_left(helper1, 5, '0');
+
+        strcat(output, get_output_line_counter(1));
         strcat(output, " ");
-        strcat(output, helper1);
-        strcat(output, "\n");
+        strcat(output, helper2);
+
+        if (i + 1 != numbers_amount) {
+            strcat(output, "\n");
+        }
 
         free(helper1);
         helper1 = NULL;
@@ -686,9 +632,8 @@ static String handle_string_line(int line_number, String line,
     String raw_chars_string;
     String chars_string;
     int chars_amount;
-    int char_code;
     String output = NULL;
-    char i;
+    int i;
 
     int extract_from = line_label_type == NOT_LABEL ? 1 : 2;
     String helper1;
@@ -702,7 +647,7 @@ static String handle_string_line(int line_number, String line,
     raw_chars_string = NULL;
 
     output =
-        (String)malloc(MAX_LINE_OUTPUT * (chars_amount + 1) * sizeof(char));
+        (String)malloc(MAX_LINE_OUTPUT * (chars_amount + 5) * sizeof(char));
     if (output == NULL) {
         printf(
             "line: %d, Error(handle_string_line): Could not allocate memory "
@@ -711,19 +656,24 @@ static String handle_string_line(int line_number, String line,
         exit(EXIT_FAILURE);
     }
 
-    for (i = chars_string[1]; *(chars_string + (i + 1)) != '\0'; i++) {
-        char_code = (int)i;
-        helper1 = cast_decimal_to_string(char_code);
+    for (i = 1; chars_string[i + 1] != '\0'; i++) {
+        helper1 = cast_decimal_to_string(chars_string[i]);
         helper2 = cast_decimal_to_binary(helper1);
 
         free(helper1);
 
         helper1 = cast_binary_to_octal(helper2);
+        free(helper2);
 
-        strcat(output, get_instruction_counter(1));
+        helper2 = pad_left(helper1, 5, '0');
+
+        strcat(output, get_output_line_counter(1));
         strcat(output, " ");
-        strcat(output, helper1);
-        strcat(output, "\n");
+        strcat(output, helper2);
+
+        if (chars_string[i + 1] != '\0') {
+            strcat(output, "\n");
+        }
 
         free(helper1);
         helper1 = NULL;
@@ -731,6 +681,10 @@ static String handle_string_line(int line_number, String line,
         free(helper2);
         helper2 = NULL;
     }
+
+    strcat(output, get_output_line_counter(1));
+    strcat(output, " ");
+    strcat(output, "00000");
 
     free(chars_string);
     chars_string = NULL;
@@ -743,9 +697,9 @@ static String handle_string_line(int line_number, String line,
  *
  * @param file_path the path for the file
  *
- * @returns EXIT_SUCCESS if the output was successful, otherwise EXIT_FAILURE
+ * @returns The new file content, or NULL if the file could not be created
  */
-static int generate_file_output(String file_path) {
+static String generate_file_output(String file_path) {
     FILE *file;
     int exit_code = EXIT_SUCCESS;
     int updated_exit_code;
@@ -755,14 +709,20 @@ static int generate_file_output(String file_path) {
     String opcode = NULL;
     LabelType line_label_type;
 
+    String file_res = (String)malloc(MAX_LINE_OUTPUT *
+                                     MAX_LINES_FOR_OUTPUT_LINE * sizeof(char));
     String line_res = NULL;
-    String rest_line_res = NULL;
     String helper = NULL;
+
+    if (file_res == NULL) {
+        printf("Error: Could not allocate memory for file_res\n");
+        exit(EXIT_FAILURE);
+    }
 
     file = fopen(file_path, "r");
     if (file == NULL) {
         printf("Error: Could not open file '%s'\n", file_path);
-        return EXIT_FAILURE;
+        return NULL;
     }
 
     /**
@@ -777,13 +737,20 @@ static int generate_file_output(String file_path) {
 
         line_label_type = is_label(line);
 
-        line_res = (String)malloc(MAX_LINE_OUTPUT * MAX_LINES_FOR_OUTPUT_LINE *
-                                  sizeof(char));
-        rest_line_res = (String)malloc(MAX_LINE_OUTPUT * sizeof(char));
-
-        if (line_res == NULL || rest_line_res == NULL) {
+        line_res = (String)malloc(MAX_LINE_OUTPUT * sizeof(char));
+        file_res = (String)realloc(file_res, MAX_LINE_OUTPUT * line_number *
+                                                 MAX_LINES_FOR_OUTPUT_LINE *
+                                                 sizeof(char));
+        if (line_res == NULL || file_res == NULL) {
             printf("Error: Could not allocate memory for line\n");
             exit(EXIT_FAILURE);
+        }
+
+        /**
+         * No need to generate output for entry / extern labels
+         */
+        if (line_label_type == LABEL_ENTRY || line_label_type == LABEL_EXTERN) {
+            continue;
         }
 
         /**
@@ -802,21 +769,15 @@ static int generate_file_output(String file_path) {
                 free(line_res);
                 line_res = NULL;
 
-                free(rest_line_res);
-                rest_line_res = NULL;
-
                 exit_code = EXIT_FAILURE;
                 continue;
             }
 
-            strcat(line_res, helper);
-            strcat(line_res, "\n");
+            strcat(file_res, helper);
+            strcat(file_res, "\n");
 
             free(line_res);
             line_res = NULL;
-
-            free(rest_line_res);
-            rest_line_res = NULL;
 
             free(helper);
             helper = NULL;
@@ -830,15 +791,12 @@ static int generate_file_output(String file_path) {
                 free(line_res);
                 line_res = NULL;
 
-                free(rest_line_res);
-                rest_line_res = NULL;
-
                 exit_code = EXIT_FAILURE;
                 continue;
             }
 
-            strcat(line_res, helper);
-            strcat(line_res, "\n");
+            strcat(file_res, helper);
+            strcat(file_res, "\n");
 
             free(helper);
             helper = NULL;
@@ -855,15 +813,15 @@ static int generate_file_output(String file_path) {
          * Insert line number and opcode binary
          * ---------------------
          */
-        strcat(line_res, get_instruction_counter(1));
-        strcat(line_res, " ");
+        strcat(file_res, get_output_line_counter(1));
+        strcat(file_res, " ");
 
         /**
          * ---------------------
          * Handle opcode
          * ---------------------
          */
-        updated_exit_code = handle_opcode(line_number, rest_line_res, opcode);
+        updated_exit_code = handle_opcode(line_number, line_res, opcode);
         exit_code = update_exit_code(exit_code, updated_exit_code);
 
         /**
@@ -871,22 +829,25 @@ static int generate_file_output(String file_path) {
          * Handle operands for opcode output line
          * ---------------------
          */
-        updated_exit_code = handle_opcode_operands(
-            line_number, rest_line_res, line, opcode, line_label_type);
+        updated_exit_code = handle_opcode_operands(line_number, line_res, line,
+                                                   opcode, line_label_type);
         exit_code = update_exit_code(exit_code, updated_exit_code);
 
         /* Handle ARE - opcode output line is always 100 */
-        strcat(rest_line_res, "100");
+        strcat(line_res, "100");
 
         /* Cast the current binary to octal */
-        helper = cast_binary_to_octal(rest_line_res);
-        strcat(line_res, helper);
+        helper = cast_binary_to_octal(line_res);
+        strcat(file_res, helper);
 
         free(helper);
         helper = NULL;
 
         /* Start creating the new line of the output */
-        strcat(line_res, "\n");
+        strcat(file_res, "\n");
+
+        free(line_res);
+        line_res = NULL;
 
         /**
          * ---------------------
@@ -894,14 +855,19 @@ static int generate_file_output(String file_path) {
          *
          * @note
          * This function can add to the output 0-2 lines
-         * We need to pass in the line_res, so we can add the line number
-         *
          * The function itself convert the output to octal, and enter a new line
          * ---------------------
          */
-        updated_exit_code = handle_operands_output(line_number, line_res, line,
-                                                   opcode, line_label_type);
-        exit_code = update_exit_code(exit_code, updated_exit_code);
+        line_res =
+            handle_operands_output(line_number, line, opcode, line_label_type);
+        if (line_res == NULL) {
+            printf("line: %d, Error: Could not handle operands\n", line_number);
+            exit_code = EXIT_FAILURE;
+        }
+
+        if (exit_code == EXIT_SUCCESS) {
+            strcat(file_res, line_res);
+        }
 
         free(line_res);
         line_res = NULL;
@@ -910,33 +876,184 @@ static int generate_file_output(String file_path) {
         opcode = NULL;
     }
 
-    return exit_code;
+    return file_res;
+}
+
+/**
+ * Append the entry file with th output labels
+ */
+static void append_entry_file(OutputLabel *entry_label, String file_path,
+                              FILE *file) {
+    int i = 0;
+    int size = get_string_array_length(entry_label->line_addresses);
+    String output;
+
+    if (entry_label->type == OUTPUT_LABEL_EXTERN) {
+        return;
+    }
+
+    for (i = 0; i < size; i++) {
+        output = pad_left(entry_label->line_addresses[i], 4, '0');
+
+        fprintf(file, "%s %s\n", entry_label->name, output);
+
+        free(output);
+        output = NULL;
+    }
+}
+
+/**
+ * Append the extern file with the output labels
+ */
+static void append_extern_file(OutputLabel *extern_label, String file_path,
+                               FILE *file) {
+    int i = 0;
+    int size = get_string_array_length(extern_label->line_addresses);
+
+    if (extern_label->type == OUTPUT_LABEL_ENTRY) {
+        return;
+    }
+
+    for (i = 0; i < size; i++) {
+        fprintf(file, "%s %s\n", extern_label->name,
+                extern_label->line_addresses[i]);
+    }
+}
+
+/**
+ * Append the entry file with labels that does not appear as operands, but
+ * defined
+ */
+static void append_non_used_entries(Label *label, String file_path,
+                                    FILE *file) {
+    String output;
+    String helper;
+
+    if (label->has_entry == 0 || label->is_defined == 0) {
+        return;
+    }
+
+    output = cast_decimal_to_string(label->memory_address + SYMBOL_START_POINT);
+    helper = pad_left(output, 4, '0');
+
+    if (has_output_label(label->name) == 0) {
+        fprintf(file, "%s %s\n", label->name, helper);
+    }
+
+    free(output);
+    output = NULL;
+
+    free(helper);
+    helper = NULL;
+}
+
+/**
+ * Create the entry / extern files
+ *
+ * @param file_paths the paths for the files, after the post-process
+ */
+static void create_entry_extern_files(String file_path) {
+    String extern_target_file_path =
+        replace_substring(file_path, (String)POST_PROCESS_FILE_EXTENSION,
+                          (String)EXTERN_FILE_EXTENSION);
+
+    String entry_target_file_path =
+        replace_substring(file_path, (String)POST_PROCESS_FILE_EXTENSION,
+                          (String)ENTRY_FILE_EXTENSION);
+
+    FILE *entry_file;
+    FILE *extern_file;
+
+    entry_file = fopen(entry_target_file_path, "w");
+    if (entry_file == NULL) {
+        printf("Error: Could not create entry file '%s'\n", file_path);
+        return;
+    }
+
+    /**
+     * Print labels with entries but not in use
+     */
+    iterate_labels(append_non_used_entries, entry_target_file_path, entry_file);
+
+    iterate_output_labels(append_entry_file, entry_target_file_path,
+                          entry_file);
+    fclose(entry_file);
+
+    extern_file = fopen(extern_target_file_path, "w");
+    if (extern_file == NULL) {
+        printf("Error: Could not create extern file '%s'\n", file_path);
+        return;
+    }
+
+    iterate_output_labels(append_extern_file, extern_target_file_path,
+                          extern_file);
+    fclose(extern_file);
+
+    free(entry_target_file_path);
+    entry_target_file_path = NULL;
 }
 
 /**
  * Handle the output for the files
  *
- * @param file_paths the paths for the files
+ * @param file_paths the paths for the files, after the post-process
  *
  * @return EXIT_SUCCESS if the output was successful, otherwise EXIT_FAILURE
  */
 int handle_output(String *file_paths) {
-    int i;
+    FILE *file;
     int is_failed = EXIT_SUCCESS;
-    int create_output_res = EXIT_SUCCESS;
+    String file_res;
+    int i;
+
+    String target_file_path;
 
     /**
      * Create output files
      */
     for (i = 0; file_paths[i] != NULL; i++) {
-        create_output_res = generate_file_output(file_paths[i]);
+        file_res = generate_file_output(file_paths[i]);
 
-        if (create_output_res == EXIT_FAILURE) {
+        if (file_res == NULL) {
             printf("Error: Could not create output for file: '%s' \n",
                    file_paths[i]);
 
             is_failed = EXIT_FAILURE;
+            continue;
         }
+
+        target_file_path = replace_substring(
+            file_paths[i], (String)POST_PROCESS_FILE_EXTENSION,
+            (String)TARGET_FILE_EXTENSION);
+
+        file = fopen(target_file_path, "w");
+        if (file == NULL) {
+            printf("Error: Could not create target file '%s'\n",
+                   target_file_path);
+            is_failed = EXIT_FAILURE;
+
+            free(file_res);
+            file_res = NULL;
+
+            free(target_file_path);
+            target_file_path = NULL;
+            continue;
+        }
+
+        /* Add the IC / DC at the top */
+        fprintf(file, "  %d %d\n", get_instruction_counter(0),
+                get_data_counter(0));
+
+        fprintf(file, "%s", file_res);
+        fclose(file);
+
+        create_entry_extern_files(file_paths[i]);
+
+        free(file_res);
+        file_res = NULL;
+
+        free(target_file_path);
+        target_file_path = NULL;
     }
 
     return is_failed;

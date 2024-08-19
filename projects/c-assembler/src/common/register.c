@@ -2,6 +2,10 @@
 
 #include <string.h>
 
+#ifdef _WIN32
+#define strdup _strdup
+#endif
+
 /**
  * Check if the given token is a register
  *
