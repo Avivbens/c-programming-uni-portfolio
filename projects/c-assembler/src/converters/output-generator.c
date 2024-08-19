@@ -737,7 +737,7 @@ static String generate_file_output(String file_path) {
         file_res = (String)realloc(file_res, MAX_LINE_OUTPUT * line_number *
                                                  MAX_LINES_FOR_OUTPUT_LINE *
                                                  sizeof(char));
-        if (line_res == NULL | file_res == NULL) {
+        if (line_res == NULL || file_res == NULL) {
             printf("Error: Could not allocate memory for line\n");
             exit(EXIT_FAILURE);
         }
