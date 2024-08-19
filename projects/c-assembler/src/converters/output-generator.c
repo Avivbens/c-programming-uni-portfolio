@@ -251,7 +251,6 @@ static String handle_label_operand(int line_number, String operand,
      * Extern labels should not has any memory address for operands output
      */
     if (label->has_extern) {
-        add_extern(label->name, current_output_line_number);
         memory_address = 0;
     } else {
         if (label_type == LABEL_STRING || label_type == LABEL_DATA) {
@@ -266,6 +265,15 @@ static String handle_label_operand(int line_number, String operand,
 
     helper1 = cast_decimal_to_string(memory_address);
     binary = cast_decimal_to_binary(helper1);
+
+    if (label->has_extern) {
+        add_output_label(label->name, current_output_line_number,
+                         OUTPUT_LABEL_EXTERN);
+    }
+
+    if (label->has_entry) {
+        add_output_label(label->name, helper1, OUTPUT_LABEL_ENTRY);
+    }
 
     free(helper1);
     helper1 = NULL;
@@ -869,18 +877,29 @@ static String generate_file_output(String file_path) {
     return file_res;
 }
 
-static void append_entry_file(Label *label, String file_path, FILE *file) {
-    if (label->has_entry == 0) {
+static void append_entry_file(OutputLabel *entry_label, String file_path,
+                              FILE *file) {
+    int i = 0;
+    int size = get_string_array_length(entry_label->line_addresses);
+
+    if (entry_label->type == OUTPUT_LABEL_EXTERN) {
         return;
     }
 
-    fprintf(file, "%s %d\n", label->name, label->memory_address);
+    for (i = 0; i < size; i++) {
+        fprintf(file, "%s %s\n", entry_label->name,
+                entry_label->line_addresses[i]);
+    }
 }
 
-static void append_extern_file(ExternLabel *extern_label, String file_path,
+static void append_extern_file(OutputLabel *extern_label, String file_path,
                                FILE *file) {
     int i = 0;
     int size = get_string_array_length(extern_label->line_addresses);
+
+    if (extern_label->type == OUTPUT_LABEL_ENTRY) {
+        return;
+    }
 
     for (i = 0; i < size; i++) {
         fprintf(file, "%s %s\n", extern_label->name,
@@ -911,7 +930,8 @@ static void create_entry_extern_files(String file_path) {
         return;
     }
 
-    iterate_labels(append_entry_file, entry_target_file_path, entry_file);
+    iterate_output_labels(append_entry_file, entry_target_file_path,
+                          entry_file);
     fclose(entry_file);
 
     extern_file = fopen(extern_target_file_path, "w");
@@ -920,7 +940,8 @@ static void create_entry_extern_files(String file_path) {
         return;
     }
 
-    iterate_externs(append_extern_file, extern_target_file_path, extern_file);
+    iterate_output_labels(append_extern_file, extern_target_file_path,
+                          extern_file);
     fclose(extern_file);
 
     free(entry_target_file_path);
