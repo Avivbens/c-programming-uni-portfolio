@@ -6,6 +6,11 @@
 
 This project is a simple assembler written in C. It reads a file with assembly code and translates it into machine code.
 
+### NOTE 📝
+
+Running this project requires a Unix-like environment. It was tested on Ubuntu 20.04.
+It might work on some Windows environments, but it is not guaranteed.
+
 ## Compilation
 
 ### With Nx
