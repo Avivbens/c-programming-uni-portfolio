@@ -91,6 +91,7 @@ int add_label(String name, LabelType type, int memory_address) {
         new_label->has_entry = type == LABEL_ENTRY ? 1 : 0;
 
         new_label->name = strdup(name);
+        new_label->type = type;
 
         insert_list(labels, name, new_label, value_size);
         return EXIT_SUCCESS;
@@ -118,6 +119,8 @@ int add_label(String name, LabelType type, int memory_address) {
         printf("Error: label %s already defined\n", name);
         return EXIT_FAILURE;
     }
+
+    existing_label->type = type;
 
     /**
      * Update the label if it already exists

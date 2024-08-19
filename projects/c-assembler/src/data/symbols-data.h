@@ -24,6 +24,7 @@ typedef struct Label {
     int has_extern;
     int has_entry;
     String name;
+    LabelType type;
 } Label;
 
 #define FILL_SUCCESS 1

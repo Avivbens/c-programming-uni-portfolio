@@ -228,7 +228,6 @@ static String handle_number_operand(int line_number, String operand) {
  * @returns NULL if the operand is valid, otherwise the new line in binary
  */
 static String handle_label_operand(int line_number, String operand,
-                                   LabelType label_type,
                                    String current_output_line_number) {
     Label *label = NULL;
     String binary;
@@ -253,10 +252,10 @@ static String handle_label_operand(int line_number, String operand,
     if (label->has_extern) {
         memory_address = 0;
     } else {
-        if (label_type == LABEL_STRING || label_type == LABEL_DATA) {
-            label_ic_to_add = get_data_counter(0);
-        } else {
+        if (label->type == LABEL_STRING || label->type == LABEL_DATA) {
             label_ic_to_add = get_instruction_counter(0);
+        } else {
+            label_ic_to_add = 0;
         }
 
         memory_address =
@@ -474,9 +473,8 @@ static String handle_operands_output(int line_number, String line,
                 /**
                  * Cast the number to binary
                  */
-                rest_line_res =
-                    handle_label_operand(line_number, operand, label_type,
-                                         current_output_line_number);
+                rest_line_res = handle_label_operand(
+                    line_number, operand, current_output_line_number);
                 if (rest_line_res == NULL) {
                     exit_code = EXIT_FAILURE;
                     break;
